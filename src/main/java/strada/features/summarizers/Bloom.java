@@ -19,11 +19,11 @@ public class Bloom extends Summarizer
    private static final int DEFAULT_SIZE = 1000000;
    private static final float DEFAULT_MAX_FALSE_POS = 0.01f;
 
-   private BloomFilter filter;
-   private GridFS bloomFs;
-   private String property;
-   private int size;
-   private float maxFalsePos;
+   protected BloomFilter filter;
+   protected GridFS bloomFs;
+   protected String property;
+   protected int size;
+   protected float maxFalsePos;
 
    public Bloom(DB db, int size, float maxFalsePos, String name, String property)
    {
@@ -61,21 +61,13 @@ public class Bloom extends Summarizer
    public void summarize(DataPoint point)
    {
       if (filter == null) {
-         GridFSDBFile filterFile = bloomFs.findOne(formatFileName());
-         if (filterFile != null && filter == null) {
-            deserializeFilter(filterFile);
-         }
-
-         if (filter == null) {
-            filter = new BloomFilter(size, maxFalsePos);
-         }
+         filter = loadFilter();
       }
 
       filter.add(getMemberId(point));
-
    }
 
-   protected void deserializeFilter(GridFSDBFile filterFile)
+   protected BloomFilter deserializeFilter(GridFSDBFile filterFile)
    {
       InputStream is = null;
       try {
@@ -92,10 +84,11 @@ public class Bloom extends Summarizer
          buffer.flush();
 
          byte[] byteArray = buffer.toByteArray();
-         filter = BloomFilter.deserialize(byteArray);
+         return BloomFilter.deserialize(byteArray);
       } catch (IOException e) {
          // TODO Auto-generated catch block
          e.printStackTrace();
+         return null;
       } finally {
          try {
             if (is != null)
@@ -117,6 +110,18 @@ public class Bloom extends Summarizer
       // TODO generalize
       return property == null ? point.getId().toString()
             : ((Value) point.lookup(UpdateType.SET, property)).getValue().toString();
+   }
+
+   protected BloomFilter loadFilter()
+   {
+      BloomFilter filter = null;
+
+      GridFSDBFile filterFile = bloomFs.findOne(formatFileName());
+      if (filterFile != null) {
+         filter = deserializeFilter(filterFile);
+      }
+
+      return filter == null ? new BloomFilter(size, maxFalsePos) : filter;
    }
 
 }
