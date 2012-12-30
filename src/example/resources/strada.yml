@@ -1,0 +1,6 @@
+
+# mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+mongo:
+  clientURI: mongodb://127.0.0.1
+
+ 
