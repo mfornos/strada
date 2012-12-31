@@ -1,11 +1,11 @@
 package strada.mapreduce;
 
+import humanize.text.util.InterpolationHelper;
+import humanize.text.util.Replacer;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import humanize.text.util.InterpolationHelper;
-import humanize.text.util.Replacer;
 
 public class ScriptInterpolator implements Replacer
 {
@@ -19,14 +19,14 @@ public class ScriptInterpolator implements Replacer
       vars = new HashMap<String, String>();
    }
 
-   public String interpolate(String script)
-   {
-      return InterpolationHelper.interpolate(script, VAR, this);
-   }
-
    public void addVar(String name, String value)
    {
       vars.put(name, value);
+   }
+
+   public String interpolate(String script)
+   {
+      return InterpolationHelper.interpolate(script, VAR, this);
    }
 
    @Override

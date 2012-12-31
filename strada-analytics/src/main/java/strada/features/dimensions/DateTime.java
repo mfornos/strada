@@ -2,10 +2,10 @@ package strada.features.dimensions;
 
 import java.util.Date;
 
-import strada.features.Appender;
+import strada.features.BasicFeature;
 import strada.features.Feature;
 
-public class DateTime extends Appender
+public class DateTime extends BasicFeature
 {
 
    private final Date date;
@@ -28,15 +28,15 @@ public class DateTime extends Appender
    }
 
    @Override
-   protected Feature createChildByName(String name, Object... params)
-   {
-      return new DateTime(name);
-   }
-
-   @Override
    public Object getValue()
    {
       return date;
+   }
+
+   @Override
+   protected Feature createChildByName(String name, Object... params)
+   {
+      return new DateTime(name);
    }
 
 }

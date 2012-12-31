@@ -74,8 +74,8 @@ public enum TimeUnit {
       }
    };
 
-   public abstract Date prepareDate(Date ts);
-
    public static final TimeZone UTC = TimeZone.getTimeZone("GMT+0:00");
+
+   public abstract Date prepareDate(Date ts);
 
 }

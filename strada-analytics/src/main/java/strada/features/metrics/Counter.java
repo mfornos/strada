@@ -1,9 +1,9 @@
 package strada.features.metrics;
 
-import strada.features.Appender;
+import strada.features.BasicFeature;
 import strada.features.Feature;
 
-public class Counter extends Appender
+public class Counter extends BasicFeature
 {
 
    private final Number inc;
@@ -26,15 +26,15 @@ public class Counter extends Appender
    }
 
    @Override
-   protected Feature createChildByName(String name, Object... params)
-   {
-      return new Counter(name);
-   }
-
-   @Override
    public Object getValue()
    {
       return inc;
+   }
+
+   @Override
+   protected Feature createChildByName(String name, Object... params)
+   {
+      return new Counter(name);
    }
 
 }

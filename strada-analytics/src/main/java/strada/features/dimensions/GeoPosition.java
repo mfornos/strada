@@ -1,11 +1,11 @@
 package strada.features.dimensions;
 
-import strada.features.Appender;
+import strada.features.BasicFeature;
 import strada.features.Feature;
 
 import com.google.common.base.Preconditions;
 
-public class GeoPosition extends Appender
+public class GeoPosition extends BasicFeature
 {
 
    /*
@@ -48,18 +48,18 @@ public class GeoPosition extends Appender
    }
 
    @Override
+   public Object getValue()
+   {
+      return coordinates;
+   }
+
+   @Override
    protected Feature createChildByName(String name, Object... params)
    {
       Preconditions.checkNotNull(params, "params are required");
 
       Double[] coords = fromObjArray(params);
       return new GeoPosition(name, coords);
-   }
-
-   @Override
-   public Object getValue()
-   {
-      return coordinates;
    }
 
 }

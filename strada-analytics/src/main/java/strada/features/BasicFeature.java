@@ -3,6 +3,10 @@ package strada.features;
 import java.util.HashSet;
 import java.util.Set;
 
+import strada.points.DataPoint;
+
+import com.mongodb.BasicDBObject;
+
 /**
  * Base class for {@link Feature} implementations.
  * 
@@ -60,6 +64,26 @@ public abstract class BasicFeature implements Feature
       this.parent = parent;
       return this;
    }
+
+   @Override
+   public void appendTo(BasicDBObject obj, DataPoint point)
+   {
+      if (isLeaf()) {
+         obj.append(getName(), getValue());
+      } else {
+         for (Feature dim : children) {
+            dim.appendTo(obj, point);
+         }
+      }
+   }
+
+   /**
+    * This method will be called on the process of appending feature values to
+    * the Mongo update operation.
+    * 
+    * @return the value to be appended in the Mongo update operation
+    */
+   abstract public Object getValue();
 
    /**
     * Creates this Feature by name.
