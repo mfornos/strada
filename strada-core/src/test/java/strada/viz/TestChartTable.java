@@ -9,13 +9,10 @@ import org.testng.annotations.Test;
 
 import strada.viz.ChartColumn.ColumnType;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-
 public class TestChartTable
 {
    @Test
-   public void arrayData() throws JsonGenerationException, JsonMappingException, IOException
+   public void arrayData() throws IOException
    {
       ChartTable ct = new ChartTable();
       ct.addColumns(new ChartColumn("one", ColumnType.DATE), new ChartColumn("two"), new ChartColumn("three"));

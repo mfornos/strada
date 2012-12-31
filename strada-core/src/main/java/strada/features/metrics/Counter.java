@@ -3,6 +3,8 @@ package strada.features.metrics;
 import strada.features.BasicFeature;
 import strada.features.Feature;
 
+import com.google.common.base.Objects;
+
 public class Counter extends BasicFeature
 {
 
@@ -32,9 +34,15 @@ public class Counter extends BasicFeature
    }
 
    @Override
+   public String toString()
+   {
+      return Objects.toStringHelper(this.getClass()).add("inc", inc).toString();
+   }
+
+   @Override
    protected Feature createChildByName(String name, Object... params)
    {
-      return new Counter(name);
+      return params.length > 0 ? new Counter(name, (Number) params[0]) : new Counter(name);
    }
 
 }

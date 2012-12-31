@@ -3,6 +3,7 @@ package strada.features.dimensions;
 import strada.features.BasicFeature;
 import strada.features.Feature;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 public class GeoPosition extends BasicFeature
@@ -51,6 +52,12 @@ public class GeoPosition extends BasicFeature
    public Object getValue()
    {
       return coordinates;
+   }
+
+   @Override
+   public String toString()
+   {
+      return Objects.toStringHelper(this.getClass()).add("coordinates", coordinates).toString();
    }
 
    @Override

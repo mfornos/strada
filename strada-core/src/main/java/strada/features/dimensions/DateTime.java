@@ -5,6 +5,8 @@ import java.util.Date;
 import strada.features.BasicFeature;
 import strada.features.Feature;
 
+import com.google.common.base.Objects;
+
 public class DateTime extends BasicFeature
 {
 
@@ -31,6 +33,12 @@ public class DateTime extends BasicFeature
    public Object getValue()
    {
       return date;
+   }
+
+   @Override
+   public String toString()
+   {
+      return Objects.toStringHelper(this.getClass()).add("date", date).toString();
    }
 
    @Override

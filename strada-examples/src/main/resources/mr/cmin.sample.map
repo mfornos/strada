@@ -1,0 +1,26 @@
+function() {
+    
+    var id = {
+        oid : this._id.oid,
+        d   : ${date}
+    };
+    
+    var values = {
+        ts     : this.ts,
+        total  : this.hits,
+        action : this.action,
+        
+        // hourly
+        unique : 1,
+        repeat : 0,
+        first  : 1,
+        
+        // more time frames
+        daily  : this.daily,
+        weekly : this.weekly
+    };
+    
+    id.oid = id.oid.substring(0, id.oid.indexOf("_"));
+    
+    emit(id, values);
+};

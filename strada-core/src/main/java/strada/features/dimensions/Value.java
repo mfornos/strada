@@ -3,6 +3,7 @@ package strada.features.dimensions;
 import strada.features.BasicFeature;
 import strada.features.Feature;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 public class Value extends BasicFeature
@@ -26,6 +27,12 @@ public class Value extends BasicFeature
    public Object getValue()
    {
       return value;
+   }
+
+   @Override
+   public String toString()
+   {
+      return Objects.toStringHelper(this.getClass()).add("value", value).toString();
    }
 
    @Override

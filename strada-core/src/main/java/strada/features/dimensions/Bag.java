@@ -1,9 +1,16 @@
 package strada.features.dimensions;
 
+import java.util.Collection;
+
 public class Bag extends Value
 {
 
-   public Bag(String name, Object value)
+   public Bag(String name, Collection<?> value)
+   {
+      super(name, value);
+   }
+
+   public Bag(String name, Object[] value)
    {
       super(name, value);
    }

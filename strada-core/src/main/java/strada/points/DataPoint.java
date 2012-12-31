@@ -11,7 +11,7 @@ import strada.data.Query;
 import strada.data.TimeUnit;
 import strada.features.Feature;
 import strada.features.Feature.UpdateOp;
-import strada.features.summarizers.Summarizer;
+import strada.summarizers.Summarizer;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -30,7 +30,7 @@ public class DataPoint
 {
    private final Map<UpdateOp, Set<Feature>> features;
 
-   private final Set<Summarizer> summarizers;
+   private final Set<Summarizer<?>> summarizers;
 
    private final Object id;
 
@@ -54,7 +54,7 @@ public class DataPoint
       this.unit = unit;
       this.coll = coll;
       this.features = new HashMap<UpdateOp, Set<Feature>>();
-      this.summarizers = new HashSet<Summarizer>();
+      this.summarizers = new HashSet<Summarizer<?>>();
    }
 
    public DataPoint add(Feature... featsToAdd)
@@ -65,9 +65,11 @@ public class DataPoint
       return this;
    }
 
-   public DataPoint add(Summarizer summarizer)
+   public DataPoint add(Summarizer<?>... summs)
    {
-      summarizers.add(summarizer);
+      for (Summarizer<?> summarizer : summs) {
+         summarizers.add(summarizer);
+      }
       return this;
    }
 
@@ -164,7 +166,7 @@ public class DataPoint
 
    public void summarize()
    {
-      for (Summarizer sum : summarizers) {
+      for (Summarizer<?> sum : summarizers) {
          sum.summarize(this);
       }
    }
@@ -172,14 +174,7 @@ public class DataPoint
    @Override
    public String toString()
    {
-      return Objects.toStringHelper(this.getClass())
-            .add("id", id)
-            .add("ts", timestamp)
-            .add("unit", unit)
-            .add("dbcollection", coll)
-            .add("features", features)
-            .add("summarizers", summarizers)
-            .toString();
+      return Objects.toStringHelper(this.getClass()).add("id", id).add("ts", timestamp).add("unit", unit).add("dbcollection", coll).add("features", features).add("summarizers", summarizers).toString();
    }
 
    public WriteResult upsert()
