@@ -13,6 +13,7 @@ import strada.features.Feature;
 import strada.features.Feature.UpdateOp;
 import strada.features.summarizers.Summarizer;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -22,12 +23,12 @@ import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
 
 /**
- * A data point that can be <i>upserted</i> in Mongo database.
+ * A data point that can be aggregated in Mongo database.
  * 
  */
 public class DataPoint
 {
-   private final Map<Feature.UpdateOp, Set<Feature>> features;
+   private final Map<UpdateOp, Set<Feature>> features;
 
    private final Set<Summarizer> summarizers;
 
@@ -52,7 +53,7 @@ public class DataPoint
       this.timestamp = timestamp;
       this.unit = unit;
       this.coll = coll;
-      this.features = new HashMap<Feature.UpdateOp, Set<Feature>>();
+      this.features = new HashMap<UpdateOp, Set<Feature>>();
       this.summarizers = new HashSet<Summarizer>();
    }
 
@@ -73,9 +74,9 @@ public class DataPoint
    public BasicDBObject buildUpdateCommand()
    {
       BasicDBObject cmd = new BasicDBObject();
-      appendUpsert(cmd, "$inc", Feature.UpdateOp.INC);
-      appendUpsert(cmd, "$set", Feature.UpdateOp.SET);
-      appendUpsert(cmd, "$addToSet", Feature.UpdateOp.ADD_TO_SET);
+      for (UpdateOp op : UpdateOp.values()) {
+         appendUpsert(cmd, op);
+      }
       return cmd;
    }
 
@@ -171,10 +172,14 @@ public class DataPoint
    @Override
    public String toString()
    {
-      return "Point id=[" + id + "], unit=[" + getTimeUnit() + "], ts=[" + getTimestamp() + "], increment=["
-            + forType(Feature.UpdateOp.INC, new BasicDBObject()) + "], upsert=["
-            + forType(Feature.UpdateOp.SET, new BasicDBObject()) + "], addToSet=["
-            + forType(Feature.UpdateOp.ADD_TO_SET, new BasicDBObject()) + "]";
+      return Objects.toStringHelper(this.getClass())
+            .add("id", id)
+            .add("ts", timestamp)
+            .add("unit", unit)
+            .add("dbcollection", coll)
+            .add("features", features)
+            .add("summarizers", summarizers)
+            .toString();
    }
 
    public WriteResult upsert()
@@ -218,17 +223,17 @@ public class DataPoint
       feats.add(feature);
    }
 
-   protected void appendUpsert(BasicDBObject cmd, String aggfunc, Feature.UpdateOp type)
+   protected void appendUpsert(BasicDBObject cmd, UpdateOp op)
    {
-      if (features.containsKey(type)) {
-         BasicDBObject obj = forType(type, new BasicDBObject());
-         cmd.append(aggfunc, obj);
+      if (features.containsKey(op)) {
+         BasicDBObject obj = forOp(op, new BasicDBObject());
+         cmd.append(op.op(), obj);
       }
    }
 
-   protected BasicDBObject forType(Feature.UpdateOp type, BasicDBObject obj)
+   protected BasicDBObject forOp(UpdateOp op, BasicDBObject obj)
    {
-      for (Feature feat : features.get(type)) {
+      for (Feature feat : features.get(op)) {
          feat.appendTo(obj, this);
       }
       return obj;

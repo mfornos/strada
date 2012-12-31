@@ -12,11 +12,34 @@ public interface Feature
 {
 
    /**
-    * Specifies the type of update to be performed.
+    * Specifies the update operation to be performed.
     * 
     */
    public enum UpdateOp {
-      NONE, INC, SET, ADD_TO_SET
+
+      INC {
+         @Override
+         public String op()
+         {
+            return "$inc";
+         }
+      },
+      SET {
+         @Override
+         public String op()
+         {
+            return "$set";
+         }
+      },
+      ADD_TO_SET {
+         @Override
+         public String op()
+         {
+            return "$addToSet";
+         }
+      };
+
+      public abstract String op();
    }
 
    /**
