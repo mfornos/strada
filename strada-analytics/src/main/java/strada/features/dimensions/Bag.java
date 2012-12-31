@@ -9,9 +9,9 @@ public class Bag extends Value
    }
 
    @Override
-   public UpdateType getUpdateType()
+   public UpdateOp getUpdateOp()
    {
-      return UpdateType.ADD_TO_SET;
+      return UpdateOp.ADD_TO_SET;
    }
 
 }

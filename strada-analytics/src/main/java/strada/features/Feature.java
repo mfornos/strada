@@ -15,8 +15,8 @@ public interface Feature
     * Specifies the type of update to be performed.
     * 
     */
-   public enum UpdateType {
-      NONE, INC, SET, ADD_TO_SET, SUMMARIZE
+   public enum UpdateOp {
+      NONE, INC, SET, ADD_TO_SET
    }
 
    /**
@@ -24,7 +24,7 @@ public interface Feature
     * 
     * @return the type of the update operation
     */
-   UpdateType getUpdateType();
+   UpdateOp getUpdateOp();
 
    /**
     * Gets the feature name.
@@ -84,7 +84,5 @@ public interface Feature
     * @return this feature instance
     */
    Feature setParent(Feature parent);
-
-   void summarize(DataPoint dataPoint);
 
 }

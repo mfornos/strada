@@ -23,12 +23,6 @@ public abstract class Appender extends BasicFeature
       }
    }
 
-   @Override
-   public void summarize(DataPoint dataPoint)
-   {
-      //
-   }
-
    /**
     * This method will be called on the process of appending feature values to
     * the Mongo update operation.

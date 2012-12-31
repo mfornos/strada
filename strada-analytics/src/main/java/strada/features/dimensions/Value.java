@@ -17,9 +17,9 @@ public class Value extends Appender
    }
 
    @Override
-   public UpdateType getUpdateType()
+   public UpdateOp getUpdateOp()
    {
-      return UpdateType.SET;
+      return UpdateOp.SET;
    }
 
    @Override

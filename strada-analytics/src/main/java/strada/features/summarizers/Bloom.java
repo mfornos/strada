@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import strada.features.Feature.UpdateOp;
 import strada.features.dimensions.Value;
 import strada.points.DataPoint;
 
@@ -14,11 +15,12 @@ import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
 
 // TODO guava cache?
-public class Bloom extends Summarizer
+public class Bloom implements Summarizer
 {
    private static final int DEFAULT_SIZE = 1000000;
    private static final float DEFAULT_MAX_FALSE_POS = 0.01f;
 
+   protected final String name;
    protected BloomFilter filter;
    protected GridFS bloomFs;
    protected String property;
@@ -27,7 +29,7 @@ public class Bloom extends Summarizer
 
    public Bloom(DB db, int size, float maxFalsePos, String name, String property)
    {
-      super(name);
+      this.name = name;
       this.bloomFs = new GridFS(db, name);
       this.property = property;
       this.size = size;
@@ -102,14 +104,14 @@ public class Bloom extends Summarizer
 
    protected String formatFileName()
    {
-      return String.format("bloom_%s.bin", getName());
+      return String.format("bloom_%s.bin", name);
    }
 
    protected String getMemberId(DataPoint point)
    {
       // TODO generalize
       return property == null ? point.getId().toString()
-            : ((Value) point.lookup(UpdateType.SET, property)).getValue().toString();
+            : ((Value) point.lookup(UpdateOp.SET, property)).getValue().toString();
    }
 
    protected BloomFilter loadFilter()

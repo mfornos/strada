@@ -10,7 +10,8 @@ import java.util.Set;
 import strada.data.Query;
 import strada.data.TimeUnit;
 import strada.features.Feature;
-import strada.features.Feature.UpdateType;
+import strada.features.Feature.UpdateOp;
+import strada.features.summarizers.Summarizer;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -26,7 +27,9 @@ import com.mongodb.WriteResult;
  */
 public class DataPoint
 {
-   private final Map<Feature.UpdateType, Set<Feature>> features = new HashMap<Feature.UpdateType, Set<Feature>>();
+   private final Map<Feature.UpdateOp, Set<Feature>> features;
+
+   private final Set<Summarizer> summarizers;
 
    private final Object id;
 
@@ -49,6 +52,8 @@ public class DataPoint
       this.timestamp = timestamp;
       this.unit = unit;
       this.coll = coll;
+      this.features = new HashMap<Feature.UpdateOp, Set<Feature>>();
+      this.summarizers = new HashSet<Summarizer>();
    }
 
    public DataPoint add(Feature... featsToAdd)
@@ -59,12 +64,18 @@ public class DataPoint
       return this;
    }
 
+   public DataPoint add(Summarizer summarizer)
+   {
+      summarizers.add(summarizer);
+      return this;
+   }
+
    public BasicDBObject buildUpdateCommand()
    {
       BasicDBObject cmd = new BasicDBObject();
-      appendUpsert(cmd, "$inc", Feature.UpdateType.INC);
-      appendUpsert(cmd, "$set", Feature.UpdateType.SET);
-      appendUpsert(cmd, "$addToSet", Feature.UpdateType.ADD_TO_SET);
+      appendUpsert(cmd, "$inc", Feature.UpdateOp.INC);
+      appendUpsert(cmd, "$set", Feature.UpdateOp.SET);
+      appendUpsert(cmd, "$addToSet", Feature.UpdateOp.ADD_TO_SET);
       return cmd;
    }
 
@@ -107,7 +118,7 @@ public class DataPoint
       return coll;
    }
 
-   public Map<Feature.UpdateType, Set<Feature>> getFeatures()
+   public Map<Feature.UpdateOp, Set<Feature>> getFeatures()
    {
       return Collections.unmodifiableMap(features);
    }
@@ -134,7 +145,7 @@ public class DataPoint
       return unit;
    }
 
-   public Feature lookup(UpdateType type, final String name)
+   public Feature lookup(UpdateOp type, final String name)
    {
       Set<Feature> feats = features.get(type);
       if (!(feats == null || feats.isEmpty())) {
@@ -152,8 +163,8 @@ public class DataPoint
 
    public void summarize()
    {
-      for (Feature feat : features.get(Feature.UpdateType.SUMMARIZE)) {
-         feat.summarize(this);
+      for (Summarizer sum : summarizers) {
+         sum.summarize(this);
       }
    }
 
@@ -161,9 +172,9 @@ public class DataPoint
    public String toString()
    {
       return "Point id=[" + id + "], unit=[" + getTimeUnit() + "], ts=[" + getTimestamp() + "], increment=["
-            + forType(Feature.UpdateType.INC, new BasicDBObject()) + "], upsert=["
-            + forType(Feature.UpdateType.SET, new BasicDBObject()) + "], addToSet=["
-            + forType(Feature.UpdateType.ADD_TO_SET, new BasicDBObject()) + "]";
+            + forType(Feature.UpdateOp.INC, new BasicDBObject()) + "], upsert=["
+            + forType(Feature.UpdateOp.SET, new BasicDBObject()) + "], addToSet=["
+            + forType(Feature.UpdateOp.ADD_TO_SET, new BasicDBObject()) + "]";
    }
 
    public WriteResult upsert()
@@ -199,15 +210,15 @@ public class DataPoint
 
    protected void addFeature(Feature feature)
    {
-      Set<Feature> feats = features.get(feature.getUpdateType());
+      Set<Feature> feats = features.get(feature.getUpdateOp());
       if (feats == null) {
          feats = new HashSet<Feature>();
-         features.put(feature.getUpdateType(), feats);
+         features.put(feature.getUpdateOp(), feats);
       }
       feats.add(feature);
    }
 
-   protected void appendUpsert(BasicDBObject cmd, String aggfunc, Feature.UpdateType type)
+   protected void appendUpsert(BasicDBObject cmd, String aggfunc, Feature.UpdateOp type)
    {
       if (features.containsKey(type)) {
          BasicDBObject obj = forType(type, new BasicDBObject());
@@ -215,7 +226,7 @@ public class DataPoint
       }
    }
 
-   protected BasicDBObject forType(Feature.UpdateType type, BasicDBObject obj)
+   protected BasicDBObject forType(Feature.UpdateOp type, BasicDBObject obj)
    {
       for (Feature feat : features.get(type)) {
          feat.appendTo(obj, this);

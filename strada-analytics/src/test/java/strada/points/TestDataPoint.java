@@ -21,7 +21,7 @@ public class TestDataPoint
    {
       DataPoint point = new DataPoint("myid");
       Assert.assertEquals(point.getId(), "myid");
-      Assert.assertEquals(point.getTimeUnit(), TimeUnit.DAY);
+      Assert.assertEquals(point.getTimeUnit(), TimeUnit.HOUR);
       Assert.assertNotNull(point.getTimestamp());
       DBObject id = (DBObject) point.byId().get("_id");
       Assert.assertEquals(id.get("oid"),"myid");

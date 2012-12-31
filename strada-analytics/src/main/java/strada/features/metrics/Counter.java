@@ -20,9 +20,9 @@ public class Counter extends Appender
    }
 
    @Override
-   public UpdateType getUpdateType()
+   public UpdateOp getUpdateOp()
    {
-      return UpdateType.INC;
+      return UpdateOp.INC;
    }
 
    @Override
