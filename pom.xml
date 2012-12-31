@@ -59,7 +59,7 @@
 	</dependencies>
 
 	<modules>
-		<module>strada-analytics</module>
+		<module>strada-core</module>
 	</modules>
 
 
