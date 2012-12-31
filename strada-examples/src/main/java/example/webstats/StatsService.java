@@ -24,8 +24,6 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.MapReduceCommand.OutputType;
 import com.mongodb.MapReduceOutput;
 import com.mongodb.QueryBuilder;
@@ -39,7 +37,7 @@ public class StatsService
 
    private final PointWriter proc;
 
-   private final String[] aggs = new String[] { "daily", "weekly", "monthly", "yearly" };
+   private final String[] aggs = new String[] { "hourly", "daily", "weekly", "monthly", "yearly" };
 
    private final MapReduceService mrs;
 
@@ -64,10 +62,11 @@ public class StatsService
 
    public void aggregate()
    {
-      DBCursor cursor = proc.getDataSource().find();
-      for (DBObject o : cursor) {
-         System.out.println(o);
-      }
+      // XXX debug
+      // DBCursor cursor = proc.getDataSource().find();
+      // for (DBObject o : cursor) {
+      // System.out.println(o);
+      // }
 
       try {
          List<Future<MapReduceOutput>> tasks = new ArrayList<Future<MapReduceOutput>>(aggs.length);
@@ -81,7 +80,7 @@ public class StatsService
          }
 
          // XXX testing
-         //lastRun = cutoff;
+         // lastRun = cutoff;
 
          // wait for results
          for (Future<MapReduceOutput> task : tasks) {
@@ -89,6 +88,13 @@ public class StatsService
          }
       } catch (Exception e) {
          LOGGER.error(e.getMessage(), e);
+      }
+   }
+
+   public void clearFrequencies()
+   {
+      for(Summarizer<CountMinSketch> s : freqs.values()) {
+         s.reset();
       }
    }
 
@@ -123,14 +129,22 @@ public class StatsService
    private void initInterpolators()
    {
       ScriptInterpolator sc = new ScriptInterpolator();
+      sc.addVar("date", "new Date(this._id.d.getFullYear(), this._id.d.getMonth(),this._id.d.getDate(),this._id.d.getHours(), 0, 0, 0)");
+      interpols.put("hourly", sc);
+      
+      sc = new ScriptInterpolator();
       sc.addVar("date", "new Date(this._id.d.getFullYear(), this._id.d.getMonth(),this._id.d.getDate(),0, 0, 0, 0)");
       interpols.put("daily", sc);
+      
       sc = new ScriptInterpolator();
+      // XXX not working for hourly variations
       sc.addVar("date", "new Date(this._id.d.valueOf() - this._id.d.getDay()*86400000)");
       interpols.put("weekly", sc);
+      
       sc = new ScriptInterpolator();
       sc.addVar("date", "new Date(this._id.d.getFullYear(), this._id.d.getMonth(), 1, 0, 0, 0, 0)");
       interpols.put("monthly", sc);
+      
       sc = new ScriptInterpolator();
       sc.addVar("date", "new Date(this._id.d.getFullYear(),1, 1, 0, 0, 0, 0)");
       interpols.put("yearly", sc);

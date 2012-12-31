@@ -2,7 +2,9 @@ package strada.viz;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChartTable
@@ -13,11 +15,17 @@ public class ChartTable
 
    private final AtomicInteger autoIncrement;
 
+   private boolean stdEnabled;
+
+   private Map<Integer, Std> stds;
+
    public ChartTable()
    {
+      this.stdEnabled = true;
       this.columns = new ArrayList<ChartColumn>();
       this.rows = new ArrayList<ChartData>();
       this.autoIncrement = new AtomicInteger(-1);
+      this.stds = new HashMap<Integer, Std>();
    }
 
    public ChartTable addColumn(ChartColumn column)
@@ -39,6 +47,9 @@ public class ChartTable
 
    public ChartTable addRow(ChartData row)
    {
+      if (stdEnabled) {
+         computeStd(row);
+      }
       rows.add(row);
       return this;
    }
@@ -117,6 +128,21 @@ public class ChartTable
       return Collections.unmodifiableList(rows);
    }
 
+   public Std getStd(int index)
+   {
+      Std tmp = stds.get(index);
+      if (tmp == null) {
+         tmp = new Std();
+         stds.put(index, tmp);
+      }
+      return tmp;
+   }
+
+   public boolean isStdEnabled()
+   {
+      return stdEnabled;
+   }
+
    public int rowsNum()
    {
       return this.rows.size();
@@ -132,8 +158,15 @@ public class ChartTable
 
    public ChartTable setRows(List<ChartData> rows)
    {
-      this.rows = rows;
+      for (ChartData row : rows) {
+         addRow(row);
+      }
       return this;
+   }
+
+   public void setStdEnabled(boolean stdEnabled)
+   {
+      this.stdEnabled = stdEnabled;
    }
 
    public Object[][] toArray()
@@ -144,5 +177,16 @@ public class ChartTable
          dst[r++] = data.toArray();
       }
       return dst;
+   }
+
+   protected void computeStd(ChartData row)
+   {
+      for (ChartColumn column : columns) {
+         if (column.isNumeric()) {
+            int index = column.getIndex();
+            Std std = getStd(index);
+            std.compute(row.getNumber(index));
+         }
+      }
    }
 }

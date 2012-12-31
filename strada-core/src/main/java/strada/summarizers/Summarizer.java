@@ -11,4 +11,6 @@ public interface Summarizer<T>
    T getSummarizer();
    
    String getName();
+
+   void reset();
 }

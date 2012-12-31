@@ -57,6 +57,8 @@ public class StradaStats extends ApplicationFrame
    @Inject
    private DB db;
 
+   private Random r = new Random();
+
    public StradaStats()
    {
       super("Strada demo");
@@ -79,14 +81,21 @@ public class StradaStats extends ApplicationFrame
       stats.serializeFrequencies();
    }
 
-   private Random r = new Random();
-   
+   public void drop()
+   {
+      stats.clearFrequencies();
+      db.dropDatabase();
+      client.getDB("test");
+   }
+
    public void generateTraffic(int days, int hits)
    {
       Calendar cal = Calendar.getInstance();
       for (int i = 0; i < days; i++) {
          for (int n = 0; n < hits; n++) {
-            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), new String[] { "purchase", "orange" }, "linux"));
+            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), new String[] { "purchase",
+                  "orange" }, "linux"));
+            cal.set(Calendar.HOUR_OF_DAY, r.nextInt(22) + 1);
          }
          cal.add(Calendar.DAY_OF_MONTH, -1);
       }
@@ -99,15 +108,19 @@ public class StradaStats extends ApplicationFrame
       ChartTable table = new ChartTable();
       table.addColumn(new ChartColumn("value.ts", ColumnType.DATE));
       table.addColumn(new ChartColumn("value.total"));
-      table.addColumn(new ChartColumn("value.first"));
       table.addColumn(new ChartColumn("value.unique"));
+      table.addColumn(new ChartColumn("value.first"));
       table.addColumn(new ChartColumn("value.repeat"));
-      table.addColumn(new ChartColumn("value.action.purchase"));
-      table.addColumn(new ChartColumn("value.daily.count"));
       table.addColumn(new ChartColumn("value.daily.first"));
       table.addColumn(new ChartColumn("value.daily.repeat"));
+      table.addColumn(new ChartColumn("value.action.purchase"));
+
       for (DBObject obj : cursor) {
-         table.addRow(new MongoChartData(obj, table.getColumns()));
+         try {
+            table.addRow(new MongoChartData(obj, table.getColumns()));
+         } catch (Exception e) {
+            //
+         }
       }
 
       return table;

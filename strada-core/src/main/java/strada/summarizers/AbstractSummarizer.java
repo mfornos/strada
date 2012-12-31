@@ -115,5 +115,11 @@ public abstract class AbstractSummarizer<T> implements Summarizer<T>
       file.save();
    }
 
+   @Override
+   public void reset()
+   {
+      summarizer = null;
+   }
+
    abstract protected T onByteArray(byte[] byteArray);
 }

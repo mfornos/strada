@@ -21,7 +21,7 @@
   <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame -->
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   
-  <title>Marmalade APIs Example</title>
+  <title>Strada Analytics Sample</title>
   
   <meta name="title" content="">
   <meta name="description" content="">
@@ -61,25 +61,29 @@
      - Transparency is not recommended (iOS will put a black BG behind the icon) -->
   
   <!-- CSS: screen, mobile & print are all in the same file -->
-  <link rel="stylesheet" href="/_/css/style.css">
+  <link rel="stylesheet" href="/_/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/_/css/styles.css">
   
   <!-- all our JS is at the bottom of the page, except for Modernizr. -->
   <script src="/_/js/modernizr-1.7.min.js"></script>
-  <script src="/_/js/jquery-1.5.1.min.js"></script>
+  <script src="/_/js/jquery-1.8.3.min.js"></script>
   <script type="text/javascript" src="/_/js/highcharts.js"></script>
+  <script src="/_/js/bootstrap.min.js"></script>
 
   </head>
   <body>
-    <div class="wrapper">
-    <header id="pageheader">
-      <jsp:invoke fragment="header"/>
+    <header id="pageheader" class="jumbotron">
+      <div class="container">
+        <jsp:invoke fragment="header"/>
+      </div>
     </header>
-    <article id="body">
+    <div class="container">
       <jsp:doBody/>
-    </article>
-    <footer id="pagefooter">
-      <jsp:invoke fragment="footer"/>
-    </footer>
     </div>
+    <footer id="pagefooter">
+      <div class="container">
+        <jsp:invoke fragment="footer"/>
+      </div>
+    </footer>
   </body>
 </html>

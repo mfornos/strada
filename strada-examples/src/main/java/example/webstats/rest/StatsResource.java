@@ -31,26 +31,51 @@ public class StatsResource
    final static StradaStats stats = new StradaStats();
 
    @GET
+   @Path("drop")
+   public Response getDrop() throws ServletException, IOException, URISyntaxException
+   {
+      stats.drop();
+      return toHome();
+   }
+
+   @GET
    public Response getIndex() throws ServletException, IOException
    {
-      ChartTable table = stats.getData("daily_stats");
-      request.setAttribute("data", Series.toData(table, 1, 3));
-      request.setAttribute("loyaltyData", Series.toSingleData(table, 8));
+      return getIndex("daily");
+   }
+
+   @GET
+   @Path("{frame}")
+   public Response getIndex(@PathParam("frame") String frame) throws ServletException, IOException
+   {
+      ChartTable table = stats.getData(frame + "_stats");
+      request.setAttribute("data", Series.toData(table, 1, 2));
+      request.setAttribute("loyaltyData", Series.toData(table, 5, 6));
+      request.setAttribute("hitsStd", table.getStd(1));
+      request.setAttribute("uniquesStd", table.getStd(2));
+      request.setAttribute("firstStd", table.getStd(5));
+      request.setAttribute("repeatStd", table.getStd(6));
+      request.setAttribute("origin", request.getRequestURL());
       return forward("/index.jsp");
    }
 
    @GET
-   @Path("more/{num}")
-   public Response getMore(@PathParam("num") int num) throws URISyntaxException
+   @Path("more/{days}/{events}")
+   public Response getMore(@PathParam("days") int days, @PathParam("events") int events) throws URISyntaxException
    {
-      stats.generateTraffic(num, 10);
+      stats.generateTraffic(days, events);
       stats.aggregate();
-      return Response.seeOther(new URI("/stats/")).build();
+      return toHome();
    }
 
    protected Response forward(String uri) throws ServletException, IOException
    {
       context.getRequestDispatcher(uri).forward(request, response);
       return Response.ok().build();
+   }
+
+   protected Response toHome() throws URISyntaxException
+   {
+      return Response.seeOther(new URI("/stats/")).build();
    }
 }
