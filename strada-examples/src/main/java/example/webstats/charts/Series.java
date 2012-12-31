@@ -51,4 +51,26 @@ public class Series
       public String name;
       public Object[][] data;
    }
+   
+   public static class SingleSerie
+   {
+      public String name;
+      public Object[] data;
+   }
+
+   public static String toSingleData(ChartTable table, int c) throws JsonProcessingException
+   {
+      SingleSerie serie = new SingleSerie();
+      serie.data = new Object[table.rowsNum()];
+      serie.name = table.getColumn(c).getName();
+      int i = 0;
+
+      for (ChartData row : table.getRows()) {
+         Number number = row.getNumber(c);
+         serie.data[i] = number;
+         i++;
+      }
+
+      return om.writeValueAsString(new SingleSerie[]{serie});
+   }
 }

@@ -2,6 +2,7 @@ package example.webstats;
 
 import java.awt.Dimension;
 import java.util.Calendar;
+import java.util.Random;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -21,6 +22,7 @@ import strada.viz.MongoChartData;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -77,12 +79,14 @@ public class StradaStats extends ApplicationFrame
       stats.serializeFrequencies();
    }
 
+   private Random r = new Random();
+   
    public void generateTraffic(int days, int hits)
    {
       Calendar cal = Calendar.getInstance();
       for (int i = 0; i < days; i++) {
          for (int n = 0; n < hits; n++) {
-            stats.onHit(new Hit(n /* ip + var */, "website" + i, cal.getTime(), new String[] { "purchase", "orange" }, "linux"));
+            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), new String[] { "purchase", "orange" }, "linux"));
          }
          cal.add(Calendar.DAY_OF_MONTH, -1);
       }
@@ -90,7 +94,7 @@ public class StradaStats extends ApplicationFrame
 
    public ChartTable getData(String collection)
    {
-      DBCursor cursor = db.getCollection(collection).find();
+      DBCursor cursor = db.getCollection(collection).find().sort(new BasicDBObject().append("value.ts", 1));
 
       ChartTable table = new ChartTable();
       table.addColumn(new ChartColumn("value.ts", ColumnType.DATE));
@@ -99,6 +103,7 @@ public class StradaStats extends ApplicationFrame
       table.addColumn(new ChartColumn("value.unique"));
       table.addColumn(new ChartColumn("value.repeat"));
       table.addColumn(new ChartColumn("value.action.purchase"));
+      table.addColumn(new ChartColumn("value.daily.count"));
       table.addColumn(new ChartColumn("value.daily.first"));
       table.addColumn(new ChartColumn("value.daily.repeat"));
       for (DBObject obj : cursor) {

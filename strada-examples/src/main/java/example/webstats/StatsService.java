@@ -21,6 +21,7 @@ import strada.summarizers.Summarizer;
 
 import com.clearspring.analytics.stream.frequency.CountMinSketch;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -29,6 +30,7 @@ import com.mongodb.MapReduceCommand.OutputType;
 import com.mongodb.MapReduceOutput;
 import com.mongodb.QueryBuilder;
 
+@Singleton
 public class StatsService
 {
    private static final String SAMPLE_MR_PATH = "src/main/resources/mr/cmin.sample";
@@ -71,15 +73,15 @@ public class StatsService
          List<Future<MapReduceOutput>> tasks = new ArrayList<Future<MapReduceOutput>>(aggs.length);
 
          Calendar cal = Calendar.getInstance(TimeUnit.UTC);
-         // cal.add(Calendar.HOUR, 1);
-         Date cutoff = cal.getTime(); // new Date(now.getTime() - (60 * 1000));
+         Date cutoff = cal.getTime();
 
          for (String agg : aggs) {
             Future<MapReduceOutput> t = hierarchicalAggregate(cutoff, agg);
             tasks.add(t);
          }
 
-         lastRun = cutoff;
+         // XXX testing
+         //lastRun = cutoff;
 
          // wait for results
          for (Future<MapReduceOutput> task : tasks) {

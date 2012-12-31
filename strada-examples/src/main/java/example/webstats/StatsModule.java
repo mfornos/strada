@@ -5,6 +5,7 @@ import strada.ioc.StradaModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 import com.mongodb.DB;
@@ -23,10 +24,11 @@ public class StatsModule extends AbstractModule
 
    @Inject
    @Provides
+   @Singleton
    DB providesDB(@Named("dbName") String dbName, MongoClient client)
    {
       DB db = client.getDB(dbName);
-      //db.dropDatabase();
+      db.dropDatabase();
       return db;
    }
 

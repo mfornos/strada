@@ -11,7 +11,7 @@
     </jsp:attribute>
     <jsp:body>
     <script>
-    var chart1; // globally available
+    var chart1, loyalty; // globally available
     $(document).ready(function() {
           chart1 = new Highcharts.Chart({
              chart: {
@@ -39,11 +39,25 @@
                 }
              },
              series: ${data}
-          });    
+          }); 
+          loyalty = new Highcharts.Chart({
+              chart: {
+                 renderTo: 'loyalty',
+                 type: 'column'
+              },
+              title: {
+                 text: 'User loyalty'
+              },
+              xAxis: {
+            	 tickInterval: 1
+              },
+              series: ${loyaltyData}
+           });   
        });
     </script>
     
       <div id="container" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+      <div id="loyalty" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     
     </jsp:body>
 </t:layout>

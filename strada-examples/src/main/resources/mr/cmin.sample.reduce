@@ -5,8 +5,16 @@ function(id, values) {
       unique : 0,
       repeat : 0,
       first  : 0,
-      daily  : {},
-      weekly : {},
+      daily  : {
+        first : 0,
+        repeat: 0,
+        count : 0
+      },
+      weekly : {
+        first : 0,
+        repeat: 0,
+        count : 0
+      },
       action : {}
     };
     
@@ -20,11 +28,6 @@ function(id, values) {
       
       // Frequencies 
       // TODO interpolate in frame dependent template
-      
-      if(result.daily.repeat == null) result.daily.repeat = 0;
-      if(result.daily.first == null) result.daily.first = 0;
-      if(result.weekly.repeat == null) result.daily.repeat = 0;
-      if(result.weekly.first == null) result.daily.first = 0;
       
       if(v.daily.freq > 1) result.daily.repeat += 1;
       if(v.daily.freq == 1) result.daily.first += 1;
