@@ -45,4 +45,19 @@ public class TestChartTable
       Assert.assertEquals(ct.getColumn(2).getName(), "three");
       Assert.assertEquals(ct.getColumn(0).getType(), ColumnType.DATE);
    }
+
+   @Test
+   public void stds()
+   {
+      ChartTable ct = new ChartTable();
+      ct.addColumns(new ChartColumn("one", ColumnType.DATE), new ChartColumn("two"), new ChartColumn("three"));
+      for (int i = 0; i < 100; i++)
+         ct.addRow(new BasicChartData(new Date(0), i, 1.5));
+
+      Assert.assertEquals(ct.getStd(1).getSum(), 4950.0);
+      Assert.assertEquals(ct.getStd(1).getMax(), 99.0);
+      Assert.assertEquals(ct.getStd(1).getMin(), 0.0);
+      Assert.assertEquals(ct.getStd(1).getDiff(), 1.0);
+      Assert.assertEquals(ct.getStd(2).getSum(), 150.0);
+   }
 }

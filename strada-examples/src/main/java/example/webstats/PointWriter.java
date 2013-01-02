@@ -79,7 +79,7 @@ public class PointWriter
 
    private void addUA(DataPoint point, Hit hit)
    {
-      
+
       Counter os = new Counter("os");
       Counter browser = new Counter("browser");
       Counter browserVersion = new Counter("browser_version");
@@ -94,9 +94,12 @@ public class PointWriter
          if (b != null) {
             browser.add(b.getName());
 
-         Version bv = userAgent.getBrowserVersion();
-         if (bv != null)
-            browserVersion.add(new Counter(b.getName()).add(bv.getVersion().replace('.', '_')));
+            Version bv = userAgent.getBrowserVersion();
+            if (bv != null) {
+               browserVersion.add(new Counter(b.getName()).add(bv.getVersion().replace('.', '_')));
+            } else {
+               browserVersion.add(new Counter(b.getName()).add("unknown"));
+            }
          }
       }
 

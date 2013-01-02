@@ -217,7 +217,8 @@ public class ChartTable
          if (column.isNumeric()) {
             int index = column.getIndex();
             Std std = getStd(index);
-            std.compute(row.getNumber(index));
+            Number number = row.getNumber(index);
+            std.compute(number);
          }
       }
    }

@@ -2,11 +2,12 @@ package example.webstats.charts;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import strada.viz.ChartColumn;
+import strada.util.Walker;
 import strada.viz.ChartData;
 import strada.viz.ChartTable;
 import strada.viz.Std;
@@ -14,8 +15,9 @@ import strada.viz.Std;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-
-import example.webstats.charts.Series.Serie;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 
 // XXX quick and dirty
 public class Series
@@ -68,6 +70,86 @@ public class Series
          serie.data[i] = new Object[] { names[i], stds[i].getSum() / total };
       }
       return serie;
+   }
+
+   public static String toDetailPieChart(ChartTable table, Map<String, Map<String, Double>> subData, int... columns)
+         throws JsonProcessingException
+   {
+      Serie serie = new Serie();
+      serie.data = new Object[columns.length][2];
+      Std[] stds = new Std[columns.length];
+      String[] names = new String[columns.length];
+
+      double total = 0;
+
+      for (int i = 0; i < columns.length; i++) {
+         names[i] = table.getColumn(columns[i]).getName();
+         stds[i] = table.getStd(table.getColumn(columns[i]).getIndex());
+         total += stds[i].getSum();
+      }
+
+      SubSerie subSerie = new SubSerie();
+
+      for (int i = 0; i < columns.length; i++) {
+
+         double sum = stds[i].getSum();
+
+         serie.data[i] = new Object[] { names[i], sum };
+
+         // Normalize sub-data value
+         if (subData.containsKey(names[i])) {
+            Map<String, Double> subVals = subData.get(names[i]);
+            for (Map.Entry<String, Double> subVal : subVals.entrySet()) {
+               subSerie.data.add(new Object[] { subVal.getKey(), subVal.getValue() });
+            }
+         }
+
+      }
+
+      String out = om.writeValueAsString(new Object[] { serie, subSerie });
+      return out;
+   }
+
+   public static class SubSerie
+   {
+      public List<Object[]> data = new ArrayList<Object[]>();
+      public String name;
+      public String innerSize = "60%";
+   }
+
+   public static Map<String, Map<String, Double>> getSubData(DBCursor cursor, String selector)
+   {
+      Map<String, Map<String, Double>> subData = new LinkedHashMap<String, Map<String, Double>>();
+
+      for (DBObject obj : cursor) {
+         BasicDBObject dyn = (BasicDBObject) Walker.get(obj, selector);
+
+         for (Map.Entry<String, Object> entry : dyn.entrySet()) {
+
+            BasicDBObject nobj = (BasicDBObject) entry.getValue();
+
+            for (Map.Entry<String, Object> subEntry : nobj.entrySet()) {
+
+               Map<String, Double> vs = subData.get(entry.getKey());
+
+               if (vs == null) {
+                  vs = new HashMap<String, Double>();
+               }
+
+               Double val = 0.0;
+               if (vs.containsKey(subEntry.getKey())) {
+                  val = vs.get(subEntry.getKey());
+               }
+
+               vs.put(subEntry.getKey(), val + (Double) subEntry.getValue());
+               subData.put(entry.getKey(), vs);
+
+            }
+
+         }
+      }
+
+      return subData;
    }
 
    public static String toData(ChartTable table, int... columns) throws JsonProcessingException

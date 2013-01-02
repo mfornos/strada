@@ -1,59 +1,39 @@
 package strada.viz;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+// Non thread safe
 public class BasicChartData implements ChartData
 {
 
-   private List<Object> data;
+   private final Map<Integer, Object> data;
+   private int currentIndex;
 
    public BasicChartData()
    {
-      data = new ArrayList<Object>();
+      this.data = new LinkedHashMap<Integer, Object>();
+      this.currentIndex = 0;
    }
 
    public BasicChartData(Object... objs)
    {
       this();
       for (Object obj : objs) {
-         data.add(obj);
+         data.put(currentIndex++, obj);
       }
    }
 
    public void add(int index, Object element)
    {
-      data.add(index, element);
+      data.put(index, element);
    }
 
    public void add(Object obj)
    {
-      data.add(obj);
-   }
-
-   public boolean addAll(Collection<? extends Object> c)
-   {
-      return data.addAll(c);
-   }
-
-   public boolean addAll(int index, Collection<? extends Object> c)
-   {
-      return data.addAll(index, c);
-   }
-
-   public void addAll(Object[] objs)
-   {
-      for (Object obj : objs) {
-         data.add(obj);
-      }
-   }
-
-   public boolean contains(Object o)
-   {
-      return data.contains(o);
+      data.put(currentIndex++, obj);
    }
 
    @Override
@@ -92,11 +72,6 @@ public class BasicChartData implements ChartData
       return (String) data.get(position);
    }
 
-   public int indexOf(Object o)
-   {
-      return data.indexOf(o);
-   }
-
    public boolean isEmpty()
    {
       return data.isEmpty();
@@ -104,13 +79,13 @@ public class BasicChartData implements ChartData
 
    public Iterator<Object> iterator()
    {
-      return data.iterator();
+      return data.values().iterator();
    }
 
    @Override
    public void put(int index, Object value)
    {
-      data.set(index, value);
+      data.put(index, value);
    }
 
    public int size()
@@ -121,7 +96,7 @@ public class BasicChartData implements ChartData
    @Override
    public Object[] toArray()
    {
-      return data.toArray();
+      return data.values().toArray();
    }
 
    @Override
@@ -130,7 +105,7 @@ public class BasicChartData implements ChartData
       return "BasicChartData [data=" + data + "]";
    }
 
-   protected List<Object> getData()
+   protected Map<Integer, Object> getData()
    {
       return data;
    }

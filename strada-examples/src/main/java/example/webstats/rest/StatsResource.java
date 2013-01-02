@@ -67,6 +67,9 @@ public class StatsResource
       request.setAttribute("osPieData", Series.toPieData(os, os.getColumnIndexes(1)));
       request.setAttribute("browserPieData", Series.toPieData(browser, browser.getColumnIndexes(1)));
       request.setAttribute("actionsPieData", Series.toPieData(action, action.getColumnIndexes(1)));
+
+      request.setAttribute("versionPieData", Series.toDetailPieChart(browser, Series.getSubData(cursor, "value.version"), browser.getColumnIndexes(1)));
+
       request.setAttribute("origin", request.getRequestURL());
       return forward("/index.jsp");
    }

@@ -42,6 +42,7 @@
           <t:chart id="osPie" title="OS" data="${osPieData}" type="pie" />
           <t:chart id="browserPie" title="Browser" data="${browserPieData}" type="pie" />
           <t:chart id="actionsPie" title="Actions" data="${actionsPieData}" type="pie" />
+          <t:chart id="versionPie" title="Browser" data="${versionPieData}" type="pie" />
     	  
           hits = new Highcharts.Chart(hits_options);
           loyalty = new Highcharts.Chart(loyalty_options);
@@ -49,6 +50,7 @@
           osPie = new Highcharts.Chart(osPie_options);
           browserPie = new Highcharts.Chart(browserPie_options);
           actionsPie = new Highcharts.Chart(actionsPie_options);
+          versionPie = new Highcharts.Chart(versionPie_options);
          
      });
     </script>
@@ -80,6 +82,7 @@
       <div id="osPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
       <div id="browserPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
       <div id="actionsPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+      <div id="versionPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
     </div>
     
