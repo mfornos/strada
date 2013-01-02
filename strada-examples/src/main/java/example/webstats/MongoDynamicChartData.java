@@ -29,15 +29,18 @@ public class MongoDynamicChartData extends BasicChartData
 
       BasicDBObject dyn = (BasicDBObject) Walker.get(obj, selector);
 
+      if (dyn == null) {
+         return;
+      }
+      
       for (Map.Entry<String, Object> entry : dyn.entrySet()) {
 
-         ChartColumn column = table.getColumn(entry.getKey());
-
-         if (column == null) {
-            column = new ChartColumn(entry.getKey());
-            table.addColumn(column);
+         if (!table.hasColumn(entry.getKey())) {
+            ChartColumn nCol = new ChartColumn(entry.getKey());
+            table.addColumn(nCol);
          }
 
+         ChartColumn column = table.getColumn(entry.getKey());
          add(column.getIndex(), entry.getValue());
 
       }

@@ -124,10 +124,13 @@ public class Series
       for (DBObject obj : cursor) {
          BasicDBObject dyn = (BasicDBObject) Walker.get(obj, selector);
 
+         if(dyn == null)
+            continue;
+         
          for (Map.Entry<String, Object> entry : dyn.entrySet()) {
 
             BasicDBObject nobj = (BasicDBObject) entry.getValue();
-
+            
             for (Map.Entry<String, Object> subEntry : nobj.entrySet()) {
 
                Map<String, Double> vs = subData.get(entry.getKey());
@@ -141,8 +144,12 @@ public class Series
                   val = vs.get(subEntry.getKey());
                }
 
-               vs.put(subEntry.getKey(), val + (Double) subEntry.getValue());
+               try {
+               vs.put(subEntry.getKey(), val + ((Number) subEntry.getValue()).doubleValue());
                subData.put(entry.getKey(), vs);
+               } catch(Exception e) {
+                  e.printStackTrace();
+               }
 
             }
 

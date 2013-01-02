@@ -31,4 +31,6 @@ public interface ChartData extends Iterable<Object>
 
    Object[] toArray();
 
+   boolean exists(int index);
+
 }

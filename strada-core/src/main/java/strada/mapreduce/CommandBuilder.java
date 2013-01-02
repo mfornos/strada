@@ -16,6 +16,10 @@ import com.mongodb.MapReduceCommand;
 import com.mongodb.MapReduceCommand.OutputType;
 import com.mongodb.MapReduceOutput;
 
+/**
+ * Builder for Mongo map-reduce commands.
+ * 
+ */
 public class CommandBuilder
 {
    private static final Logger LOGGER = LoggerFactory.getLogger(CommandBuilder.class);

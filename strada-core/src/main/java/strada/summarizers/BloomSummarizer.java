@@ -6,6 +6,10 @@ import com.clearspring.analytics.stream.membership.BloomFilter;
 import com.mongodb.DB;
 import com.mongodb.gridfs.GridFS;
 
+/**
+ * Bloom filter summarizer.
+ * 
+ */
 // TODO guava cache?
 public class BloomSummarizer extends AbstractSummarizer<BloomFilter>
 {
@@ -42,15 +46,15 @@ public class BloomSummarizer extends AbstractSummarizer<BloomFilter>
       save(BloomFilter.serialize(summarizer));
    }
 
-   protected BloomFilter onByteArray(byte[] byteArray)
-   {
-      return BloomFilter.deserialize(byteArray);
-   }
-
    @Override
    protected BloomFilter createSummarizer()
    {
       return new BloomFilter(size, maxFalsePos);
+   }
+
+   protected BloomFilter onByteArray(byte[] byteArray)
+   {
+      return BloomFilter.deserialize(byteArray);
    }
 
    @Override

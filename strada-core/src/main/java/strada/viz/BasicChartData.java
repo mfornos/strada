@@ -37,6 +37,12 @@ public class BasicChartData implements ChartData
    }
 
    @Override
+   public boolean exists(int index)
+   {
+      return data.containsKey(index);
+   }
+
+   @Override
    public Object get(ChartColumn column)
    {
       return get(column.getIndex());

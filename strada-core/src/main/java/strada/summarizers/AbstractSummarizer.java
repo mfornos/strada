@@ -4,6 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import strada.features.Feature.UpdateOp;
 import strada.features.dimensions.Value;
 import strada.points.DataPoint;
@@ -12,6 +15,12 @@ import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
 
+/**
+ * Base class for point summarizers.
+ * 
+ * @param <T>
+ *           underlying summarizer implementation class
+ */
 public abstract class AbstractSummarizer<T> implements Summarizer<T>
 {
    public AbstractSummarizer(GridFS gridFs, String name, String property)
@@ -26,6 +35,8 @@ public abstract class AbstractSummarizer<T> implements Summarizer<T>
    {
       return name;
    }
+
+   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSummarizer.class);
 
    protected final String name;
    protected GridFS gridFs;
@@ -63,16 +74,14 @@ public abstract class AbstractSummarizer<T> implements Summarizer<T>
          byte[] byteArray = buffer.toByteArray();
          return onByteArray(byteArray);
       } catch (IOException e) {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
+         LOGGER.error(e.getMessage(), e);
          return null;
       } finally {
          try {
             if (is != null)
                is.close();
          } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            //
          }
       }
    }

@@ -6,6 +6,10 @@ import com.clearspring.analytics.stream.frequency.CountMinSketch;
 import com.mongodb.DB;
 import com.mongodb.gridfs.GridFS;
 
+/**
+ * Count-Min Sketch summarizer.
+ * 
+ */
 public class CountMinSketchSummarizer extends AbstractSummarizer<CountMinSketch>
 {
    private static final double EPS_DEFAULT = 0.0001;
@@ -43,15 +47,15 @@ public class CountMinSketchSummarizer extends AbstractSummarizer<CountMinSketch>
       save(CountMinSketch.serialize(summarizer));
    }
 
-   protected CountMinSketch onByteArray(byte[] byteArray)
-   {
-      return CountMinSketch.deserialize(byteArray);
-   }
-
    @Override
    protected CountMinSketch createSummarizer()
    {
       return new CountMinSketch(epsOfTotalCount, confidence, seed);
+   }
+
+   protected CountMinSketch onByteArray(byte[] byteArray)
+   {
+      return CountMinSketch.deserialize(byteArray);
    }
 
    @Override
