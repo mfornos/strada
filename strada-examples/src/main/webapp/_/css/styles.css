@@ -7,9 +7,8 @@ body {
 	text-align: center;
 	text-shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 0 30px rgba(0, 0, 0, .075);
 	background: #030C22; /* Old browsers */
-    background-position: center top, center top;
-    background-repeat: no-repeat, repeat-x;
-	
+	background-position: center top, center top;
+	background-repeat: no-repeat, repeat-x;
 	/* Safari 4-5, Chrome 1-9 */
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#030C22),
 		to(#20293F) );
@@ -22,7 +21,6 @@ body {
 	/* Opera 11.10+ */
 	background: -o-linear-gradient(top, #20293F, #030C22);
 	padding: 40px 0;
-	
 	text-align: left;
 }
 
@@ -123,4 +121,73 @@ a:hover {
 body .nav>li>a:hover {
 	background-color: #ECF081;
 	color: #333;
+}
+
+/* Style the calendar custom widget */
+#date-range {
+	position: relative;
+	float: right;
+	margin: 35px 0;
+}
+
+#date-range-field {
+	width: 290px;
+	height: 26px;
+	overflow: hidden;
+	position: relative;
+	cursor: pointer;
+	border: 2px solid #CCCCCC;
+	border-radius: 5px 5px 5px 5px;
+}
+
+#date-range-field a {
+	color: #B2B2B2;
+	background-color: #20293F;
+	text-align: center;
+	display: block;
+	position: absolute;
+	width: 26px;
+	height: 23px;
+	top: 0;
+	right: 0;
+	text-decoration: none;
+	text-shadow: none;
+	padding-top: 6px;
+	border-radius: 0 5px 5px 0;
+}
+
+#date-range-field span {
+	font-size: 12px;
+	font-weight: bold;
+	color: #FFF;
+	position: relative;
+	top: 0;
+	height: 26px;
+	line-height: 26px;
+	left: 5px;
+	width: 250px;
+	text-align: center;
+}
+
+#datepicker-calendar {
+	position: absolute;
+	top: 27px;
+	right: 0;
+	overflow: hidden;
+	width: 497px;
+	height: 153px;
+	background-color: #F7F7F7;
+	border: 1px solid #CCCCCC;
+	border-radius: 5px 0 5px 5px;
+	display: none;
+	padding: 10px 0 0 10px;
+	z-index: 100;
+}
+
+/* Remove default border from the custom widget since we're adding our own.  TBD: rework the dropdown calendar to use the default borders */
+#datepicker-calendar div.datepicker {
+	background-color: transparent;
+	border: none;
+	border-radius: 0;
+	padding: 0;
 }

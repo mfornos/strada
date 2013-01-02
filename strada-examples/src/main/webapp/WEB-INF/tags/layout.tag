@@ -69,6 +69,10 @@
   <script src="/_/js/jquery-1.8.3.min.js"></script>
   <script type="text/javascript" src="/_/js/highcharts.js"></script>
   <script src="/_/js/bootstrap.min.js"></script>
+  
+  <script type="text/javascript" src="/_/js/datepicker/js/datepicker.js"></script>
+  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/base.css" /> 
+  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/clean.css" />   
 
   </head>
   <body>

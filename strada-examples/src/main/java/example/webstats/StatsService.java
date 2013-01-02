@@ -1,8 +1,8 @@
 package example.webstats;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +51,10 @@ public class StatsService extends HierarchicalAgg
    public List<MapReduceOutput> aggregate()
    {
       List<MapReduceOutput> result = super.aggregate();
-      lastRun = new Date(0);
+      // XXX testing
+      Calendar cal = Calendar.getInstance();
+      cal.add(Calendar.HOUR, -48);
+      lastRun = cal.getTime();
       return result;
    }
 

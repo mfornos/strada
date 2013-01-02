@@ -3,6 +3,7 @@ package example.webstats;
 import java.awt.Dimension;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Random;
 
 import org.jfree.chart.ChartFactory;
@@ -28,6 +29,9 @@ import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import com.mongodb.QueryBuilder;
+
+import example.webstats.misc.RandomString;
 
 /**
  * 
@@ -67,6 +71,8 @@ public class StradaStats extends ApplicationFrame
 
    private Random r = new Random();
 
+   RandomString rs = new RandomString(15);
+
    public StradaStats()
    {
       super("Strada demo");
@@ -98,15 +104,26 @@ public class StradaStats extends ApplicationFrame
 
    public void generateTraffic(int days, int hits)
    {
+      String[] actions = randomActions();
       Calendar cal = Calendar.getInstance();
       for (int i = 0; i < days; i++) {
          for (int n = 0; n < hits; n++) {
-            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), new String[] { "purchase",
-                  "orange" }, Arrays.copyOfRange(ua, 0, r.nextInt(ua.length + 1))));
+            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), actions, Arrays.copyOfRange(ua, 0, r.nextInt(ua.length + 1))));
             cal.set(Calendar.HOUR_OF_DAY, r.nextInt(22) + 1);
          }
          cal.add(Calendar.DAY_OF_MONTH, -1);
       }
+   }
+
+   public DBCursor getCollection(String collection)
+   {
+      return db.getCollection(collection).find().sort(new BasicDBObject().append("_id.d", 1));
+   }
+
+   public DBCursor getCollection(String collection, Date begin, Date end)
+   {
+      DBObject query = QueryBuilder.start("_id.d").greaterThanEquals(begin).lessThanEquals(end).get();
+      return db.getCollection(collection).find(query).sort(new BasicDBObject().append("_id.d", 1));
    }
 
    public ChartTable getData(DBCursor cursor)
@@ -130,11 +147,6 @@ public class StradaStats extends ApplicationFrame
       }
 
       return table;
-   }
-
-   public DBCursor getCollection(String collection)
-   {
-      return db.getCollection(collection).find().sort(new BasicDBObject().append("value.ts", 1));
    }
 
    public ChartTable getDynamicData(DBCursor cursor, String selector)
@@ -170,6 +182,16 @@ public class StradaStats extends ApplicationFrame
       setVisible(true);
    }
 
+   protected String[] randomActions()
+   {
+      int na = r.nextInt(15) + 1;
+      String[] actions = new String[na];
+      for (int j = 0; j < na; j++) {
+         actions[j] = rs.nextString();
+      }
+      return actions;
+   }
+
    private JFreeChart createChart(final CategoryDataset dataset)
    {
       final JFreeChart chart = ChartFactory.createBarChart("Title", "Time", "Value", dataset, PlotOrientation.VERTICAL, true, true, false);
@@ -190,5 +212,4 @@ public class StradaStats extends ApplicationFrame
 
       return dataset;
    }
-
 }

@@ -1,8 +1,12 @@
 package example.webstats.rest;
 
+import humanize.Humanize;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.ParseException;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -41,16 +45,25 @@ public class StatsResource
    }
 
    @GET
-   public Response getIndex() throws ServletException, IOException
+   public Response getIndex() throws ServletException, IOException, ParseException
    {
-      return getIndex("daily");
+      return getIndex("daily", null, null);
    }
 
    @GET
    @Path("{frame}")
-   public Response getIndex(@PathParam("frame") String frame) throws ServletException, IOException
+   public Response getIndex(@PathParam("frame") String frame) throws ServletException, IOException, ParseException
    {
-      DBCursor cursor = stats.getCollection(frame + "_stats");
+      return getIndex(frame, null, null);
+   }
+
+   @GET
+   @Path("{frame}/{begin}/{end}")
+   public Response getIndex(@PathParam("frame") String frame, @PathParam("begin") String begin,
+         @PathParam("end") String end) throws ServletException, IOException, ParseException
+   {
+      DBCursor cursor = openCursor(frame, begin, end);
+
       ChartTable os = stats.getDynamicData(cursor, "value.os");
       ChartTable browser = stats.getDynamicData(cursor, "value.browser");
       ChartTable action = stats.getDynamicData(cursor, "value.action");
@@ -87,6 +100,19 @@ public class StatsResource
    {
       context.getRequestDispatcher(uri).forward(request, response);
       return Response.ok().build();
+   }
+
+   protected DBCursor openCursor(String frame, String begin, String end) throws ParseException
+   {
+      DBCursor cursor;
+      if (begin != null && end != null) {
+         // XXX dates must not be equals
+         DateFormat dateFormat = Humanize.dateFormatInstance("dd-MM-yyyy");
+         cursor = stats.getCollection(frame + "_stats", dateFormat.parse(begin), dateFormat.parse(end));
+      } else {
+         cursor = stats.getCollection(frame + "_stats");
+      }
+      return cursor;
    }
 
    protected Response toHome() throws URISyntaxException

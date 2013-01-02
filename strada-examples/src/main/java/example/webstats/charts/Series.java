@@ -12,6 +12,7 @@ import strada.viz.ChartData;
 import strada.viz.ChartTable;
 import strada.viz.Std;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -36,12 +37,23 @@ public class Series
       public String name;
       public Object[][] data;
       // public FillColor fillColor;
+      public String size;
+      public Map<String, Object> dataLabels = new HashMap<String, Object>();
+
+      public Serie()
+      {
+         dataLabels.put("distance", -30);
+         dataLabels.put("color", "#FFF");
+      }
    }
 
    static ObjectMapper om = new ObjectMapper();
 
    static {
       om.disable(SerializationFeature.WRAP_ROOT_VALUE);
+      om.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+      om.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+      om.setSerializationInclusion(Include.NON_NULL);
    }
 
    public static String toPieData(ChartTable table, int... columns) throws JsonProcessingException
@@ -106,6 +118,7 @@ public class Series
 
       }
 
+      serie.size = "60%";
       String out = om.writeValueAsString(new Object[] { serie, subSerie });
       return out;
    }
@@ -124,13 +137,13 @@ public class Series
       for (DBObject obj : cursor) {
          BasicDBObject dyn = (BasicDBObject) Walker.get(obj, selector);
 
-         if(dyn == null)
+         if (dyn == null)
             continue;
-         
+
          for (Map.Entry<String, Object> entry : dyn.entrySet()) {
 
             BasicDBObject nobj = (BasicDBObject) entry.getValue();
-            
+
             for (Map.Entry<String, Object> subEntry : nobj.entrySet()) {
 
                Map<String, Double> vs = subData.get(entry.getKey());
@@ -145,9 +158,9 @@ public class Series
                }
 
                try {
-               vs.put(subEntry.getKey(), val + ((Number) subEntry.getValue()).doubleValue());
-               subData.put(entry.getKey(), vs);
-               } catch(Exception e) {
+                  vs.put(subEntry.getKey(), val + ((Number) subEntry.getValue()).doubleValue());
+                  subData.put(entry.getKey(), vs);
+               } catch (Exception e) {
                   e.printStackTrace();
                }
 

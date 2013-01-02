@@ -22,6 +22,10 @@ import com.mongodb.MapReduceOutput;
  */
 public class CommandBuilder
 {
+   public static final String FINALIZE_SCRIPT_EXT = ".final";
+   public static final String REDUCE_SCRIPT_EXT = ".reduce";
+   public static final String MAP_SCRIPT_EXT = ".map";
+
    private static final Logger LOGGER = LoggerFactory.getLogger(CommandBuilder.class);
 
    public static CommandBuilder startCommand(DBCollection collection)
@@ -229,11 +233,11 @@ public class CommandBuilder
 
    private void setScriptsFromPathName()
    {
-      m = new File(pathName + ".map");
-      Preconditions.checkArgument(m.exists(), "Please, provide a '%s.map' file", pathName);
-      r = new File(pathName + ".reduce");
-      Preconditions.checkArgument(r.exists(), "Please, provide a '%s.reduce' file", pathName);
-      f = new File(pathName + ".final");
+      m = new File(pathName + MAP_SCRIPT_EXT);
+      Preconditions.checkArgument(m.exists(), "Please, provide a '%s%s' file", pathName, MAP_SCRIPT_EXT);
+      r = new File(pathName + REDUCE_SCRIPT_EXT);
+      Preconditions.checkArgument(r.exists(), "Please, provide a '%s%s' file", pathName, REDUCE_SCRIPT_EXT);
+      f = new File(pathName + FINALIZE_SCRIPT_EXT);
       if (!f.exists()) {
          f = null;
       }
