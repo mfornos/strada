@@ -137,8 +137,7 @@ public class StatsService
       interpols.put("daily", sc);
       
       sc = new ScriptInterpolator();
-      // XXX not working for hourly variations
-      sc.addVar("date", "new Date(this._id.d.valueOf() - this._id.d.getDay()*86400000)");
+      sc.addVar("date", "weekDate(this._id.d)");
       interpols.put("weekly", sc);
       
       sc = new ScriptInterpolator();

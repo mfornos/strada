@@ -1,6 +1,7 @@
 package example.webstats;
 
 import java.awt.Dimension;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Random;
 
@@ -37,6 +38,12 @@ public class StradaStats extends ApplicationFrame
 
    private static final long serialVersionUID = 513296402814195928L;
 
+   private static String[] ua = new String[] {
+         "Opera/9.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)",
+         "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
+         "SonyEricssonK550i/R1JD Browser/NetFront/3.3 Profile/MIDP-2.0 Configuration/CLDC-1.1",
+         "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us; Silk/1.1.0-80) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16 Silk-Accelerated=true" };
+
    public static void main(String[] args)
    {
       final StradaStats ss = new StradaStats();
@@ -44,7 +51,7 @@ public class StradaStats extends ApplicationFrame
       ss.generateTraffic(1, 10);
       ss.aggregate();
 
-      ChartTable table = ss.getData("daily_stats");
+      ChartTable table = ss.getData(ss.getCollection("daily_stats"));
       ss.showChart(table);
    }
 
@@ -94,16 +101,15 @@ public class StradaStats extends ApplicationFrame
       for (int i = 0; i < days; i++) {
          for (int n = 0; n < hits; n++) {
             stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), new String[] { "purchase",
-                  "orange" }, "linux"));
+                  "orange" }, Arrays.copyOfRange(ua, 0, r.nextInt(ua.length+1))));
             cal.set(Calendar.HOUR_OF_DAY, r.nextInt(22) + 1);
          }
          cal.add(Calendar.DAY_OF_MONTH, -1);
       }
    }
 
-   public ChartTable getData(String collection)
+   public ChartTable getData(DBCursor cursor)
    {
-      DBCursor cursor = db.getCollection(collection).find().sort(new BasicDBObject().append("value.ts", 1));
 
       ChartTable table = new ChartTable();
       table.addColumn(new ChartColumn("value.ts", ColumnType.DATE));
@@ -113,7 +119,6 @@ public class StradaStats extends ApplicationFrame
       table.addColumn(new ChartColumn("value.repeat"));
       table.addColumn(new ChartColumn("value.daily.first"));
       table.addColumn(new ChartColumn("value.daily.repeat"));
-      table.addColumn(new ChartColumn("value.action.purchase"));
 
       for (DBObject obj : cursor) {
          try {
@@ -122,6 +127,50 @@ public class StradaStats extends ApplicationFrame
             //
          }
       }
+
+      return table;
+   }
+
+   public DBCursor getCollection(String collection)
+   {
+      return db.getCollection(collection).find().sort(new BasicDBObject().append("value.ts", 1));
+   }
+
+   public ChartTable getDynamicData(DBCursor cursor, String selector)
+   {
+
+      ChartTable table = new ChartTable();
+      table.addColumn(new ChartColumn("value.ts", ColumnType.DATE));
+
+      for (DBObject obj : cursor) {
+         System.out.println(obj);
+         try {
+            table.addRow(new MongoDynamicChartData(obj, selector, table));
+         } catch (Exception e) {
+            //
+         }
+      }
+
+      System.out.println(table);
+
+      return table;
+   }
+   
+   public ChartTable getDynamicData2(DBCursor cursor, String selector)
+   {
+
+      ChartTable table = new ChartTable();
+      table.addColumn(new ChartColumn("value.ts", ColumnType.DATE));
+
+      for (DBObject obj : cursor) {
+         try {
+            table.addRow(new MongoDynamicChartData(obj,  0, 0, selector, table));
+         } catch (Exception e) {
+            //
+         }
+      }
+
+      System.out.println(table);
 
       return table;
    }

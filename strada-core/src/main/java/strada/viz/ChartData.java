@@ -1,9 +1,6 @@
 package strada.viz;
 
 import java.util.Date;
-import java.util.Locale;
-
-import strada.data.TimeUnit;
 
 public interface ChartData extends Iterable<Object>
 {
@@ -13,6 +10,8 @@ public interface ChartData extends Iterable<Object>
    void add(Object obj);
 
    Object get(int index);
+
+   Object get(ChartColumn column);
 
    Number getNumber();
 
@@ -26,11 +25,7 @@ public interface ChartData extends Iterable<Object>
 
    int size();
 
-   String getFormattedDate(int index);
-
    Date getDate(int index);
-
-   String getFormattedDate(int index, TimeUnit timeUnit, Locale locale);
 
    void put(int index, Object value);
 

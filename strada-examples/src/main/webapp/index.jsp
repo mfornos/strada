@@ -1,7 +1,8 @@
-<%@ page language="Java" pageEncoding="UTF-8" contentType="text/html" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@page language="Java" pageEncoding="UTF-8" contentType="text/html" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="ufn" uri="http://example.com/functions" %>
-<%@ taglib prefix="t" tagdir="/WEB-INF/tags" %>
+<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@taglib prefix="t" tagdir="/WEB-INF/tags" %>
 
 <t:layout>
     <jsp:attribute name="header">
@@ -32,157 +33,26 @@
     <jsp:body>
     
     <script>
-    // XXX extract js...!
-    var chart1, loyalty; // globally available
+    var hits, loyalty; // globally available
     $(document).ready(function() {
-          chart1 = new Highcharts.Chart({
-             chart: {
-                renderTo: 'hitsvsuniques',
-                zoomType: 'x',
-                type: 'spline',
-                backgroundColor:'rgba(255, 255, 255, 0.1)',
-                borderColor: '#CCC',
-                borderWidth: 2.5,
-                plotShadow: true
-             },
-             colors: [
-                  	'#61D2D6', 
-                	'#FFE44D', 
-                	'#B5E156',
-                	'#EA3556', 
-                  	'#82187C', 
-                  	'#DB843D', 
-                  	'#92A8CD', 
-                  	'#A47D7C', 
-                  	'#B5CA92'
-                  ],
-            labels: {
-                  style: {
-                		color: '#EEE'
-                	}
-            },
-             title: {
-                text: 'Hits vs Uniques',
-                style: {
-            		color: '#EEE'
-            	}
-             },
-             legend: {
-            	borderColor: '#CCC',
-            	style: {
-             		color: '#EEE'
-             	},
-             	itemStyle: {
-             		cursor: 'pointer',
-             		color: '#EEE'
-             	}
-             },
-             xAxis: {
-            	 type: 'datetime',
-            	 dateTimeLabelFormats: { // don't display the dummy year
-                     month: '%e. %b',
-                     year: '%b'
-                 },
-                 labels: {
-                     formatter: function() {
-                          return Highcharts.dateFormat("%b %e", this.value);
-                     },
-                     style: {
-                 		color: '#EEE'
-                 	}
-                 }
-             },
-             yAxis: {
-            	 gridLineColor: '#CCC',
-            	 title: {
-            		 text: '',
-            		 style: {
-                 		color: '#EEE'
-                 	}
-            	 },
-            	 labels: {
-                     style: {
-                 		color: '#EEE'
-                 	}
-                 }
-             },
-             series: ${data}
-          }); 
-          loyalty = new Highcharts.Chart({
-              chart: {
-                 renderTo: 'loyalty',
-                 type: 'column',
-                 zoomType: 'x',
-              backgroundColor:'rgba(255, 255, 255, 0.1)',
-              borderColor: '#CCC',
-              borderWidth: 2.5,
-              plotShadow: true
-           },
-           colors: [ 
-                	'#61D2D6', 
-                	'#FFE44D', 
-                	'#B5E156',
-                	'#EA3556',
-                	'#82187C', 
-                	'#DB843D', 
-                	'#92A8CD', 
-                	'#A47D7C', 
-                	'#B5CA92'
-                ],
-          labels: {
-                style: {
-              		color: '#EEE'
-              	}
-          },
-           title: {
-              text: 'Hits vs Uniques',
-              style: {
-          		color: '#EEE'
-          	}
-           },
-           legend: {
-          	borderColor: '#CCC',
-          	style: {
-           		color: '#EEE'
-           	},
-           	itemStyle: {
-           		cursor: 'pointer',
-           		color: '#EEE'
-           	}
-           },
-           xAxis: {
-          	 type: 'datetime',
-          	 dateTimeLabelFormats: { // don't display the dummy year
-                   month: '%e. %b',
-                   year: '%b'
-               },
-               labels: {
-                   formatter: function() {
-                        return Highcharts.dateFormat("%b %e", this.value);
-                   },
-                   style: {
-               		color: '#EEE'
-               	}
-               }
-           },
-           yAxis: {
-          	 gridLineColor: '#CCC',
-          	 title: {
-          		 text: '',
-          		 style: {
-               		color: '#EEE'
-               	}
-          	 },
-          	 labels: {
-                   style: {
-               		color: '#EEE'
-               	}
-               }
-           },
-              series: ${loyaltyData}
-           });   
-       });
+    	  
+    	  <t:chart id="hits" title="Hits" data="${hitsData}" type="areaspline" />
+          <t:chart id="loyalty" title="Loyalty" data="${loyaltyData}" type="column" />
+          <t:chart id="loyaltyPie" title="Loyalty" data="${loyaltyPieData}" type="pie" />
+          <t:chart id="osPie" title="OS" data="${osPieData}" type="pie" />
+          <t:chart id="browserPie" title="Browser" data="${browserPieData}" type="pie" />
+          <t:chart id="actionsPie" title="Actions" data="${actionsPieData}" type="pie" />
+    	  
+          hits = new Highcharts.Chart(hits_options);
+          loyalty = new Highcharts.Chart(loyalty_options);
+          loyaltyPie = new Highcharts.Chart(loyaltyPie_options);
+          osPie = new Highcharts.Chart(osPie_options);
+          browserPie = new Highcharts.Chart(browserPie_options);
+          actionsPie = new Highcharts.Chart(actionsPie_options);
+         
+     });
     </script>
+    
     <ul class="nav nav-pills">
       <li class="${ufn:active(origin, '.*(/stats/hourly)$')}"><a href="/stats/hourly">hour</a></li> 
       <li class="${ufn:active(origin, '.*(index.jsp|/stats/|/stats/daily)$')}"><a href="/stats/">day</a></li> 
@@ -196,7 +66,7 @@
         <t:std counter="${hitsStd}" title="Hits" />
     </div>
     <div class="chart">
-      <div id="hitsvsuniques" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+      <div id="hits" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
     </div>
     <div class="chart-group">
@@ -206,6 +76,10 @@
     </div>
     <div class="chart">
       <div id="loyalty" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+      <div id="loyaltyPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+      <div id="osPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+      <div id="browserPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+      <div id="actionsPie" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
     </div>
     

@@ -1,4 +1,10 @@
 function() {
+
+    function weekDate(d) {
+      var nd = new Date(d.valueOf() - d.getDay()*86400000);
+      nd.setHours(0);
+      return nd;
+    };
     
     var id = {
         oid : this._id.oid,
@@ -9,6 +15,9 @@ function() {
         ts     : this.ts,
         total  : this.hits,
         action : this.action,
+        os     : this.os,
+        browser: this.browser,
+        version: this.browser_version,
         
         // hourly
         unique : 1,

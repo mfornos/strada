@@ -5,7 +5,7 @@ import strada.data.TimeUnit;
 public class ChartColumn
 {
    public static enum ColumnType {
-      NUMBER, STRING, DATE, TIMESTAMP, FLOAT
+      OBJECT, NUMBER, INTEGER, DECIMAL, TEXT, DATE, TIMESTAMP
    }
 
    private String name;
@@ -20,6 +20,7 @@ public class ChartColumn
 
    public ChartColumn()
    {
+      this(-1, "unnamed", ColumnType.NUMBER);
    }
 
    public ChartColumn(int index, String name, ColumnType type)
@@ -46,7 +47,7 @@ public class ChartColumn
 
    public ColumnType getEffectiveType()
    {
-      return isDate() ? ColumnType.STRING : type;
+      return isDate() ? ColumnType.TEXT : type;
    }
 
    public int getIndex()
@@ -72,17 +73,17 @@ public class ChartColumn
    public boolean isDate()
    {
 
-      return (ColumnType.DATE.equals(type) || ColumnType.TIMESTAMP.equals(type));
+      return ColumnType.DATE.equals(type) || ColumnType.TIMESTAMP.equals(type);
    }
 
    public boolean isNumeric()
    {
-      return (ColumnType.NUMBER.equals(type) || ColumnType.FLOAT.equals(type));
+      return ColumnType.NUMBER.equals(type) || ColumnType.INTEGER.equals(type) || ColumnType.DECIMAL.equals(type);
    }
 
-   public boolean isString()
+   public boolean isText()
    {
-      return ColumnType.STRING.equals(type);
+      return ColumnType.TEXT.equals(type);
    }
 
    public void setDisplayName(String displayName)
@@ -108,5 +109,12 @@ public class ChartColumn
    public void setType(ColumnType type)
    {
       this.type = type;
+   }
+
+   @Override
+   public String toString()
+   {
+      return "ChartColumn [name=" + name + ", displayName=" + displayName + ", type=" + type + ", index=" + index
+            + ", timeUnit=" + timeUnit + "]";
    }
 }

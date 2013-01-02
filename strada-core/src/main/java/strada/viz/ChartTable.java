@@ -32,6 +32,8 @@ public class ChartTable
    {
       if (column.getIndex() < 0) {
          column.setIndex(autoIncrement.incrementAndGet());
+      } else if (autoIncrement.get() < column.getIndex()) {
+         autoIncrement.set(column.getIndex());
       }
       columns.add(column);
       return this;
@@ -62,6 +64,15 @@ public class ChartTable
    public ChartColumn getColumn(int index)
    {
       return columns.get(index);
+   }
+
+   public ChartColumn getColumn(String name)
+   {
+      for (ChartColumn c : columns) {
+         if (name.equals(c.getName()))
+            return c;
+      }
+      return null;
    }
 
    public int[] getColumnIndexes()
@@ -138,6 +149,20 @@ public class ChartTable
       return tmp;
    }
 
+   public boolean hasColumn(ChartColumn column)
+   {
+      return columns.contains(column);
+   }
+
+   public boolean hasColumn(String columnName)
+   {
+      for (ChartColumn c : columns) {
+         if (columnName.equals(c.getName()))
+            return true;
+      }
+      return false;
+   }
+
    public boolean isStdEnabled()
    {
       return stdEnabled;
@@ -177,6 +202,13 @@ public class ChartTable
          dst[r++] = data.toArray();
       }
       return dst;
+   }
+
+   @Override
+   public String toString()
+   {
+      return "ChartTable [columns=" + columns + ", rows=" + rows + ", autoIncrement=" + autoIncrement + ", stdEnabled="
+            + stdEnabled + ", stds=" + stds + "]";
    }
 
    protected void computeStd(ChartData row)

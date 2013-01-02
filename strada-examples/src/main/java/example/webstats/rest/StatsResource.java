@@ -14,6 +14,8 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import com.mongodb.DBCursor;
+
 import strada.viz.ChartTable;
 import example.webstats.StradaStats;
 import example.webstats.charts.Series;
@@ -48,13 +50,23 @@ public class StatsResource
    @Path("{frame}")
    public Response getIndex(@PathParam("frame") String frame) throws ServletException, IOException
    {
-      ChartTable table = stats.getData(frame + "_stats");
-      request.setAttribute("data", Series.toData(table, 1, 2));
+      DBCursor cursor = stats.getCollection(frame + "_stats");
+      ChartTable os = stats.getDynamicData(cursor, "value.os");
+      ChartTable browser = stats.getDynamicData(cursor, "value.browser");
+      ChartTable action = stats.getDynamicData(cursor, "value.action");
+      ChartTable table = stats.getData(cursor);
+
+      request.setAttribute("hitsData", ("hourly".equals(frame)) ? Series.toHourlyDenseData(table, 1, 2)
+            : Series.toData(table, 1, 2));
       request.setAttribute("loyaltyData", Series.toData(table, 5, 6));
       request.setAttribute("hitsStd", table.getStd(1));
       request.setAttribute("uniquesStd", table.getStd(2));
       request.setAttribute("firstStd", table.getStd(5));
       request.setAttribute("repeatStd", table.getStd(6));
+      request.setAttribute("loyaltyPieData", Series.toPieData(table, 5, 6));
+      request.setAttribute("osPieData", Series.toPieData(os, os.getColumnIndexes(1)));
+      request.setAttribute("browserPieData", Series.toPieData(browser, browser.getColumnIndexes(1)));
+      request.setAttribute("actionsPieData", Series.toPieData(action, action.getColumnIndexes(1)));
       request.setAttribute("origin", request.getRequestURL());
       return forward("/index.jsp");
    }
