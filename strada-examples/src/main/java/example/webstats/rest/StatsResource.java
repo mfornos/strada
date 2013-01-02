@@ -74,7 +74,7 @@ public class StatsResource
       request.setAttribute("loyaltyData", ("hourly".equals(frame)) ? Series.toHourlyDenseData(table, 6, 5)
             : Series.toData(table, 6, 5));
       
-      request.setAttribute("frequencyData", Series.toFrequency(table, 6));
+      //request.setAttribute("frequencyData", Series.toFrequency(table, 6));
       request.setAttribute("hourFrequencyData", Series.toHourFrequency(stats.getData(openCursor("hourly", begin, end)), 0));
       
       request.setAttribute("hitsStd", table.getStd(1));

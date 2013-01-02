@@ -1,11 +1,8 @@
-package example.webstats;
+package strada.viz;
 
 import java.util.Map;
 
 import strada.util.Walker;
-import strada.viz.BasicChartData;
-import strada.viz.ChartColumn;
-import strada.viz.ChartTable;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -29,10 +26,13 @@ public class MongoDynamicChartData extends BasicChartData
 
       BasicDBObject dyn = (BasicDBObject) Walker.get(obj, selector);
 
-      if (dyn == null) {
-         return;
+      if (dyn != null) {
+         addDBObject(table, dyn);
       }
-      
+   }
+
+   private void addDBObject(ChartTable table, BasicDBObject dyn)
+   {
       for (Map.Entry<String, Object> entry : dyn.entrySet()) {
 
          if (!table.hasColumn(entry.getKey())) {

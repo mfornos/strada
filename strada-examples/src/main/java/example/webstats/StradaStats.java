@@ -20,6 +20,7 @@ import strada.viz.ChartColumn.ColumnType;
 import strada.viz.ChartData;
 import strada.viz.ChartTable;
 import strada.viz.MongoChartData;
+import strada.viz.MongoDynamicChartData;
 
 import com.google.inject.Guice;
 import com.google.inject.Inject;

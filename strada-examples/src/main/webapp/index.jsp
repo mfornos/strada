@@ -8,7 +8,7 @@
     <jsp:attribute name="header">
       <div class="left">
         <h1>Strada</h1>
-        <p>Simple analytics example.</p>
+        <p>Simply analytics</p>
       </div>
 
     <div id="date-range">
@@ -56,7 +56,7 @@
     	  
     	  <t:chart id="hits" title="Hits" data="${hitsData}" type="area" />
           <t:chart id="loyalty" title="Loyalty" data="${loyaltyData}" type="area" />
-          <t:chart id="freq" title="Frequency" data="${frequencyData.data}" type="bar" />
+          <%--<t:chart id="freq" title="Frequency" data="${frequencyData.data}" type="bar" />--%>
           <t:chart id="hfreq" title="Hours" data="${hourFrequencyData.data}" type="bar" />
           <t:chart id="loyaltyPie" title="Loyalty" data="${loyaltyPieData}" type="pie" />
           <t:chart id="osPie" title="OS" data="${osPieData}" type="pie" />
@@ -66,6 +66,8 @@
                     
           hits = new Highcharts.Chart(hits_options);
           loyalty = new Highcharts.Chart(loyalty_options);
+          /*
+          <%--
           freq = new Highcharts.Chart($.extend(freq_options, {
         	  yAxis: {
         		  min: 0,
@@ -87,7 +89,8 @@
         		  }
         	  },
         	  legend: { enabled: false }
-          }));
+          }));--%>
+          */
           hfreq = new Highcharts.Chart($.extend(hfreq_options, {
         	  yAxis: {
         		  min: 0,
@@ -147,17 +150,17 @@
       <div id="loyalty" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
     </div><div class="chart-group">
-    <div class="chart">
+    <!--<div class="chart">
       <div id="freq" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
-    </div>
+    </div>-->
     </div><div class="chart-group">
-    <div class="chart" style="width: 80%; margin: 10px 0;">
-      <div id="loyaltyPie" class="chart" style="min-width: 45%; height: 400px; margin: 0 10px;float:left;"></div>
-      <div id="osPie" class="chart" style="min-width: 45%; height: 400px; margin: 0 10px;float:left;"></div>
+    <div class="chart" style="width: 100%; margin: 10px 0;">
+      <div id="loyaltyPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>
+      <div id="osPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>
     </div>
-    <div class="chart" style="width: 80%; margin: 10px 0;">
-      <div id="actionsPie" class="chart" style="min-width: 45%; height: 400px; margin: 0 10px;float:left;"></div>
-      <div id="versionPie" class="chart" style="min-width: 45%; height: 400px; margin: 0 10px;float:left;"></div>
+    <div class="chart" style="width: 100%; margin: 10px 0;">
+      <div id="actionsPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>
+      <div id="versionPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>
     </div>
     </div>
     

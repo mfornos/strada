@@ -7,21 +7,10 @@ body {
 	text-align: center;
 	text-shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 0 30px rgba(0, 0, 0, .075);
 	background: #313531; /* Old browsers */
-	background-position: center top, center top;
-	background-repeat: no-repeat;
-	/* Safari 4-5, Chrome 1-9 */
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#313531),
-		to(#515351) );
-	/* Safari 5.1, Chrome 10+ */
-	background: -webkit-linear-gradient(top, #515351, #313531);
-	/* Firefox 3.6+ */
-	background: -moz-linear-gradient(top, #515351, #313531);
-	/* IE 10 */
-	background: -ms-linear-gradient(top, #515351, #313531);
-	/* Opera 11.10+ */
-	background: -o-linear-gradient(top, #515351, #313531);
 	padding: 40px 0;
 	text-align: left;
+	text-rendering: optimizeLegibility;
+	background: url('/_/img/use_your_illusion.png');
 }
 
 h1 {
@@ -58,6 +47,10 @@ a:hover {
 	float: left;
 }
 
+.jumbotron .left p {
+	letter-spacing: 0.15em;
+}
+
 .counters .std {
 	border: 2px solid #CCC;
 	border-radius: 5px;
@@ -82,7 +75,7 @@ a:hover {
 }
 
 .counters .trend .up {
-	color: #ECFC81;
+	color: #CAFC81;
 }
 
 .counters .trend .down {
@@ -126,9 +119,10 @@ body .nav>li>a:hover {
 	color: #333;
 }
 
-.nav-pills > .active > a, .nav-pills > .active > a:hover {
-color: white;
-background-color: #414541;
+.nav-pills>.active>a,.nav-pills>.active>a:hover {
+	color: white;
+	background-color: #414541;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35)
 }
 
 /* Style the calendar custom widget */
