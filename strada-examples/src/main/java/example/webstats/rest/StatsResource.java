@@ -72,6 +72,7 @@ public class StatsResource
       request.setAttribute("hitsData", ("hourly".equals(frame)) ? Series.toHourlyDenseData(table, 1, 2)
             : Series.toData(table, 1, 2));
       request.setAttribute("loyaltyData", Series.toData(table, 5, 6));
+      request.setAttribute("frequencyData", Series.toFrequency(table, 6));
       request.setAttribute("hitsStd", table.getStd(1));
       request.setAttribute("uniquesStd", table.getStd(2));
       request.setAttribute("firstStd", table.getStd(5));

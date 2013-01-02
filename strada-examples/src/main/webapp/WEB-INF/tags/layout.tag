@@ -63,17 +63,16 @@
   <!-- CSS: screen, mobile & print are all in the same file -->
   <link rel="stylesheet" href="/_/css/bootstrap.min.css">
   <link rel="stylesheet" href="/_/css/styles.css">
+  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/base.css" /> 
+  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/clean.css" /> 
   
   <!-- all our JS is at the bottom of the page, except for Modernizr. -->
   <script src="/_/js/modernizr-1.7.min.js"></script>
   <script src="/_/js/jquery-1.8.3.min.js"></script>
   <script type="text/javascript" src="/_/js/highcharts.js"></script>
   <script src="/_/js/bootstrap.min.js"></script>
-  
-  <script type="text/javascript" src="/_/js/datepicker/js/datepicker.js"></script>
-  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/base.css" /> 
-  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/clean.css" />   
-
+  <script type="text/javascript" src="/_/js/datepicker/js/datepicker.js"></script>  
+  <script type="text/javascript" src="/_/js/app.js"></script>
   </head>
   <body>
     <header id="pageheader" class="jumbotron">

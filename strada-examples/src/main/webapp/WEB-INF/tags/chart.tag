@@ -13,7 +13,7 @@
                renderTo: '${id}',
                type: '${type}',
                zoomType: 'x',
-               backgroundColor:'rgba(255, 255, 255, 0.1)',
+               backgroundColor:'#414541',
                borderColor: '#CCC',
                borderWidth: 2.5,
                plotShadow: true
