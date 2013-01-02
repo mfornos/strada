@@ -202,13 +202,13 @@ public class Series
          if (d < 1)
             continue;
 
+         int bin = (int) ((d - min) / binSize);
          if (d <= min) {
             int i = (int) d;
             first[i - 1] += 1;
-         } else if (d >= max) {
+         } else if (d >= max || bin >= numBins) {
             last[0] += 1;
          } else {
-            int bin = (int) ((d - min) / binSize);
             result[bin] += 1;
          }
       }

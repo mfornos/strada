@@ -1,4 +1,6 @@
 function(id, values) {
+    var conversions = ${conversions};
+    
     var result = {
       ts     : {},
       total  : 0,
@@ -16,7 +18,8 @@ function(id, values) {
       action : {},
       os     : {},
       browser: {},
-      version: {}
+      version: {},
+      conversion: {}
     };
     
     function objGroup(from, to) {
@@ -29,6 +32,15 @@ function(id, values) {
         }
       }
     };
+    
+    function contains(a, name){
+  for(var i = 0; i < a.length; i++) {
+      if(a[i] == name){
+        return true;
+      }
+    }
+    return false;
+  };
     
     values.forEach( function(v) {
       result.ts = v.ts;
@@ -57,7 +69,23 @@ function(id, values) {
       }
       
       // Actions
-      objGroup(v.action, result.action);
+      // objGroup(v.action, result.action);
+      
+      // Conversions
+      
+           for (var key in v.action) {
+        var val = v.action[key];
+        
+        if(contains(conversions, key)) {
+           if(result.conversion[key] == null) result.conversion[key] = 0;
+           result.conversion[key] += 1;
+        }
+        
+        if(typeof val == "number") {
+          if(result.action[key] == null) result.action[key] = 0;
+          result.action[key] += val;
+        }
+      }
         
         //var rkey = key + "_returning";
         //if(result.action[rkey] == null) result.action[rkey] = 0;

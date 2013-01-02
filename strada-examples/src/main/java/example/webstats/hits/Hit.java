@@ -1,4 +1,4 @@
-package example.webstats;
+package example.webstats.hits;
 
 import java.util.Date;
 

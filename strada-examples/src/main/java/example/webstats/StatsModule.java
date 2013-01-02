@@ -11,6 +11,8 @@ import com.google.inject.name.Names;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 
+import example.webstats.rest.StatsResource;
+
 public class StatsModule extends AbstractModule
 {
 
@@ -19,7 +21,9 @@ public class StatsModule extends AbstractModule
    {
       install(new StradaModule());
       bind(String.class).annotatedWith(Names.named("dbName")).toInstance("test");
+      bind(WebstatsAggregator.class);
       bind(StatsService.class);
+      requestStaticInjection(StatsResource.class);
    }
 
    @Inject

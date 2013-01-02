@@ -8,6 +8,8 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import strada.mapreduce.HierarchicalAgg.Interpolators;
+
 import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.mongodb.DBCollection;
@@ -211,6 +213,16 @@ public class CommandBuilder
       ms = Files.toString(m, Charset.defaultCharset());
       rs = Files.toString(r, Charset.defaultCharset());
       fs = f == null ? null : Files.toString(f, Charset.defaultCharset());
+   }
+
+   protected void interpolators(Interpolators interpols)
+   {
+      if (interpols == null)
+         return;
+
+      mapInterpolator(interpols.mapInterpolator);
+      reduceInterpolator(interpols.reduceInterpolator);
+      finalizeInterpolator(interpols.finalizeInterpolator);
    }
 
    private boolean emptyScripts()

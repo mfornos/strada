@@ -1,12 +1,11 @@
 package example.webstats.rest;
 
-import humanize.Humanize;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
 import java.text.ParseException;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -15,13 +14,23 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.mongodb.DBCursor;
+import org.glassfish.jersey.server.ManagedAsync;
 
 import strada.viz.ChartTable;
-import example.webstats.StradaStats;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.inject.Inject;
+import com.mongodb.DBCursor;
+
+import example.webstats.StatsService;
 import example.webstats.charts.Series;
 
 @Path("/")
@@ -34,13 +43,16 @@ public class StatsResource
    @Context
    ServletContext context;
 
-   final static StradaStats stats = new StradaStats();
+   private static final BlockingQueue<AsyncResponse> suspended = new ArrayBlockingQueue<AsyncResponse>(5);
+
+   @Inject
+   private static StatsService q;
 
    @GET
    @Path("drop")
    public Response getDrop() throws ServletException, IOException, URISyntaxException
    {
-      stats.drop();
+      q.drop();
       return toHome();
    }
 
@@ -58,29 +70,53 @@ public class StatsResource
    }
 
    @GET
+   @Path("daily/hits.json")
+   @Produces(MediaType.APPLICATION_JSON)
+   public String getJson() throws ParseException, JsonProcessingException
+   {
+      DBCursor cursor = q.openCursor("daily", null, null);
+      ChartTable table = q.getData(cursor);
+      return Series.toData(table, 1, 2);
+   }
+
+   @GET
+   @ManagedAsync
+   @Path("notify")
+   @Produces(MediaType.APPLICATION_JSON)
+   public void notify(@Suspended final AsyncResponse ar, @QueryParam("id") int requestId) throws IOException,
+         InterruptedException
+   {
+      suspended.put(ar);
+   }
+
+   @GET
    @Path("{frame}/{begin}/{end}")
    public Response getIndex(@PathParam("frame") String frame, @PathParam("begin") String begin,
          @PathParam("end") String end) throws ServletException, IOException, ParseException
    {
-      DBCursor cursor = openCursor(frame, begin, end);
+      // TODO move to Facade service... Stats
+      DBCursor cursor = q.openCursor(frame, begin, end);
 
-      ChartTable os = stats.getDynamicData(cursor, "value.os");
-      ChartTable browser = stats.getDynamicData(cursor, "value.browser");
-      ChartTable action = stats.getDynamicData(cursor, "value.action");
-      ChartTable table = stats.getData(cursor);
+      ChartTable os = q.getDynamicData(cursor, "value.os");
+      ChartTable browser = q.getDynamicData(cursor, "value.browser");
+      ChartTable action = q.getDynamicData(cursor, "value.action");
+      ChartTable conversion = q.getDynamicData(cursor, "value.conversion");
+      ChartTable table = q.getData(cursor);
 
       request.setAttribute("hitsData", ("hourly".equals(frame)) ? Series.toHourlyDenseData(table, 1, 2)
             : Series.toData(table, 1, 2));
       request.setAttribute("loyaltyData", ("hourly".equals(frame)) ? Series.toHourlyDenseData(table, 6, 5)
             : Series.toData(table, 6, 5));
-      
-      //request.setAttribute("frequencyData", Series.toFrequency(table, 6));
-      request.setAttribute("hourFrequencyData", Series.toHourFrequency(stats.getData(openCursor("hourly", begin, end)), 0));
-      
+      request.setAttribute("conversionData", Series.toData(conversion, conversion.getColumnIndexes(1)));
+
+      request.setAttribute("frequencyData", Series.toFrequency(table, 6));
+      request.setAttribute("hourFrequencyData", Series.toHourFrequency(q.getData(q.openCursor("hourly", begin, end)), 0));
+
       request.setAttribute("hitsStd", table.getStd(1));
       request.setAttribute("uniquesStd", table.getStd(2));
       request.setAttribute("firstStd", table.getStd(5));
       request.setAttribute("repeatStd", table.getStd(6));
+      
       request.setAttribute("loyaltyPieData", Series.toPieData(table, 5, 6));
       request.setAttribute("osPieData", Series.toPieData(os, os.getColumnIndexes(1)));
       request.setAttribute("browserPieData", Series.toPieData(browser, browser.getColumnIndexes(1)));
@@ -94,10 +130,25 @@ public class StatsResource
 
    @GET
    @Path("more/{days}/{events}")
-   public Response getMore(@PathParam("days") int days, @PathParam("events") int events) throws URISyntaxException
+   public Response getMore(@PathParam("days") int days, @PathParam("events") int events) throws URISyntaxException,
+         IllegalStateException, JsonProcessingException, ParseException
    {
-      stats.generateTraffic(days, events);
-      stats.aggregate();
+      q.generateTraffic(days, events);
+      q.aggregate();
+
+//      try {
+//         if (!suspended.isEmpty()) {
+//            DBCursor cursor = openCursor("daily", null, null);
+//            ChartTable table = stats.getData(cursor);
+//            AsyncResponse ar = suspended.take();
+//            ar.resume(Series.toData(table, 1, 2));
+//         }
+//      } catch (Exception e) {
+//         e.printStackTrace();
+//      }
+//
+//      System.out.println("sent");
+
       return toHome();
    }
 
@@ -107,18 +158,7 @@ public class StatsResource
       return Response.ok().build();
    }
 
-   protected DBCursor openCursor(String frame, String begin, String end) throws ParseException
-   {
-      DBCursor cursor;
-      if (begin != null && end != null) {
-         // XXX dates must not be equals
-         DateFormat dateFormat = Humanize.dateFormatInstance("dd-MM-yyyy");
-         cursor = stats.getCollection(frame + "_stats", dateFormat.parse(begin), dateFormat.parse(end));
-      } else {
-         cursor = stats.getCollection(frame + "_stats");
-      }
-      return cursor;
-   }
+
 
    protected Response toHome() throws URISyntaxException
    {

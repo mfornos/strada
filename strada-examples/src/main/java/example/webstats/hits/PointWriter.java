@@ -1,4 +1,4 @@
-package example.webstats;
+package example.webstats.hits;
 
 import nl.bitwalker.useragentutils.Browser;
 import nl.bitwalker.useragentutils.OperatingSystem;
@@ -29,30 +29,12 @@ public class PointWriter
       openDataSource(db);
    }
 
-   DBCollection getDataSource()
+   public DBCollection getDataSource()
    {
       return traffic;
    }
 
-   DBCollection openDataSource(DB db)
-   {
-      if (traffic == null) {
-         traffic = db.getCollection("traffic");
-         traffic.ensureIndex("ts");
-      }
-      return traffic;
-   }
-
-   Counter toActions(Hit hit)
-   {
-      Counter action = new Counter("action");
-      for (String name : hit.actions) {
-         action.add(name);
-      }
-      return action;
-   }
-
-   void write(Hit hit)
+   public void write(Hit hit)
    {
 
       DataPoint point = new DataPoint(hit.websiteId + "_" + hit.ip);
@@ -110,5 +92,23 @@ public class PointWriter
       if (!browserVersion.isLeaf())
          point.add(browserVersion);
 
+   }
+
+   private DBCollection openDataSource(DB db)
+   {
+      if (traffic == null) {
+         traffic = db.getCollection("traffic");
+         traffic.ensureIndex("ts");
+      }
+      return traffic;
+   }
+
+   private Counter toActions(Hit hit)
+   {
+      Counter action = new Counter("action");
+      for (String name : hit.actions) {
+         action.add(name);
+      }
+      return action;
    }
 }

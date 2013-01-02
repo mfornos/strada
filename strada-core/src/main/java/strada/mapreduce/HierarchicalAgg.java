@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import strada.data.TimeUnit;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.mongodb.DBCollection;
 import com.mongodb.MapReduceCommand.OutputType;
@@ -26,14 +25,14 @@ import com.mongodb.QueryBuilder;
 
 public abstract class HierarchicalAgg implements Aggregator
 {
-   private class Interpolators
+   protected class Interpolators
    {
       public ScriptInterpolator mapInterpolator;
       public ScriptInterpolator reduceInterpolator;
       public ScriptInterpolator finalizeInterpolator;
    }
 
-   private class Scripts
+   protected class Scripts
    {
       public String map;
       public String reduce;
@@ -48,9 +47,10 @@ public abstract class HierarchicalAgg implements Aggregator
    public static final String[] DEFAULT_RESOLUTIONS = new String[] { "hourly", "daily", "weekly", "monthly", "yearly" };
 
    private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalAgg.class);
-   private final String[] resolutions;
-   private final Map<String, Interpolators> interpolators;
-   private final Map<String, Scripts> scripts;
+   protected final String[] resolutions;
+   protected final Map<String, Interpolators> interpolators;
+   protected final Map<String, Scripts> scripts;
+   protected final List<AggregationListener> listeners;
    protected Date lastRun;
    protected int cutoffHours;
 
@@ -64,8 +64,15 @@ public abstract class HierarchicalAgg implements Aggregator
       this.resolutions = resolutions;
       this.interpolators = new HashMap<String, Interpolators>();
       this.scripts = new HashMap<String, Scripts>();
+      this.listeners = new ArrayList<AggregationListener>();
       this.lastRun = new Date(0);
       this.cutoffHours = cutoffHours;
+   }
+
+   @Override
+   public void addListener(AggregationListener listener)
+   {
+      this.listeners.add(listener);
    }
 
    @Override
@@ -78,12 +85,18 @@ public abstract class HierarchicalAgg implements Aggregator
 
          Date cutoff = getCutoff();
 
+         beforeAggregation();
+
          for (String resolution : resolutions) {
+            beforeAggregation(resolution);
             Future<MapReduceOutput> t = hierarchicalAggregate(getInput(), resolution, cutoff);
             tasks.add(t);
+            afterAggregation(resolution);
          }
 
          lastRun = cutoff;
+
+         afterAggregation();
 
          // wait for results
          for (Future<MapReduceOutput> task : tasks) {
@@ -96,24 +109,10 @@ public abstract class HierarchicalAgg implements Aggregator
       return response;
    }
 
-   protected void addInterpolators(String resolution, ScriptInterpolator map)
+   @Override
+   public boolean removeListener(AggregationListener listener)
    {
-      addInterpolators(resolution, map, null, null);
-   }
-
-   protected void addInterpolators(String resolution, ScriptInterpolator map, ScriptInterpolator reduce)
-   {
-      addInterpolators(resolution, map, reduce, null);
-   }
-
-   protected void addInterpolators(String resolution, ScriptInterpolator map, ScriptInterpolator reduce,
-         ScriptInterpolator finalize)
-   {
-      Interpolators interpols = new Interpolators();
-      interpols.mapInterpolator = map;
-      interpols.reduceInterpolator = reduce;
-      interpols.finalizeInterpolator = finalize;
-      this.interpolators.put(resolution, interpols);
+      return this.listeners.remove(listener);
    }
 
    protected Date getCutoff()
@@ -133,21 +132,39 @@ public abstract class HierarchicalAgg implements Aggregator
       return OutputType.MERGE;
    }
 
-   protected Future<MapReduceOutput> hierarchicalAggregate(DBCollection in, String resolution, Date cutoff)
+   protected String getPathName()
    {
-      Scripts scp = scripts.get(resolution);
-
-      Preconditions.checkNotNull(scp, "Please, initialize your map reduce scripts.");
-
-      CommandBuilder builder = CommandBuilder.startCommand(in, getOut(resolution), getOutputType()).mapScript(scp.map).reduceScript(scp.reduce);
-      if (scp.hasFinalize()) {
-         builder.finalizeScript(scp.finalize);
-      }
-      builder.query(QueryBuilder.start(timeQueryProperty()).lessThan(cutoff).greaterThan(lastRun).get());
-      return submit(builder.buildCallable(in));
+      throw new UnsupportedOperationException("Implement this method");
    }
 
-   abstract protected void initInterpolators();
+   protected Future<MapReduceOutput> hierarchicalAggregate(DBCollection in, String resolution, Date cutoff)
+   {
+
+      CommandBuilder builder = CommandBuilder.startCommand(in, getOut(resolution), getOutputType());
+
+      Scripts scp = scripts.get(resolution);
+
+      if (scp == null) {
+
+         builder.interpolators(interpolators.get(resolution));
+         builder.forPathName(getPathName());
+
+      } else {
+
+         builder.mapScript(scp.map).reduceScript(scp.reduce);
+         if (scp.hasFinalize()) {
+            builder.finalizeScript(scp.finalize);
+         }
+
+      }
+
+      builder.query(QueryBuilder.start(timeQueryProperty()).lessThan(cutoff).greaterThan(lastRun).get());
+
+      onBuilder(builder);
+
+      return submit(builder.buildCallable(in));
+
+   }
 
    protected void loadScripts(String pathName) throws IOException
    {
@@ -163,8 +180,6 @@ public abstract class HierarchicalAgg implements Aggregator
       String mapScript = Files.toString(mapFile, Charset.defaultCharset());
       String reduceScript = Files.toString(reduceFile, Charset.defaultCharset());
       String finalizeScript = finalFile == null ? null : Files.toString(finalFile, Charset.defaultCharset());
-
-      initInterpolators();
 
       for (String resolution : resolutions) {
          Scripts nsc = new Scripts();
@@ -193,11 +208,83 @@ public abstract class HierarchicalAgg implements Aggregator
       }
    }
 
+   protected void onBuilder(CommandBuilder builder)
+   {
+      // empty callback
+   }
+
+   protected void setInterpolators(String resolution, ScriptInterpolator map)
+   {
+      setInterpolators(resolution, map, null, null);
+   }
+
+   protected void setInterpolators(String resolution, ScriptInterpolator map, ScriptInterpolator reduce)
+   {
+      setInterpolators(resolution, map, reduce, null);
+   }
+
+   protected void setInterpolators(String resolution, ScriptInterpolator map, ScriptInterpolator reduce,
+         ScriptInterpolator finalize)
+   {
+      Interpolators interpols = new Interpolators();
+      interpols.mapInterpolator = map;
+      interpols.reduceInterpolator = reduce;
+      interpols.finalizeInterpolator = finalize;
+      this.interpolators.put(resolution, interpols);
+   }
+
+   protected void setScripts(String resolution, String map)
+   {
+      setScripts(resolution, map, null, null);
+   }
+
+   protected void setScripts(String resolution, String map, String reduce)
+   {
+      setScripts(resolution, map, reduce, null);
+   }
+
+   protected void setScripts(String resolution, String map, String reduce, String finalize)
+   {
+      Scripts scripts = new Scripts();
+      scripts.map = map;
+      scripts.reduce = reduce;
+      scripts.finalize = finalize;
+      this.scripts.put(resolution, scripts);
+   }
+
    abstract protected Future<MapReduceOutput> submit(Callable<MapReduceOutput> buildCallable);
 
    protected String timeQueryProperty()
    {
       return "ts";
+   }
+
+   private void afterAggregation()
+   {
+      for (AggregationListener listener : listeners) {
+         listener.afterAggregation();
+      }
+   }
+
+   private void afterAggregation(String resolution)
+   {
+      for (AggregationListener listener : listeners) {
+         listener.afterAggregation(resolution);
+      }
+   }
+
+   private void beforeAggregation()
+   {
+      for (AggregationListener listener : listeners) {
+         listener.beforeAggregation();
+      }
+   }
+
+   private void beforeAggregation(String resolution)
+   {
+      for (AggregationListener listener : listeners) {
+         listener.beforeAggregation(resolution);
+      }
    }
 
 }

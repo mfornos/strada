@@ -56,7 +56,8 @@
     	  
     	  <t:chart id="hits" title="Hits" data="${hitsData}" type="area" />
           <t:chart id="loyalty" title="Loyalty" data="${loyaltyData}" type="area" />
-          <%--<t:chart id="freq" title="Frequency" data="${frequencyData.data}" type="bar" />--%>
+          <t:chart id="conversion" title="Conversion" data="${conversionData}" type="area" />
+          <t:chart id="freq" title="Frequency" data="${frequencyData.data}" type="bar" />
           <t:chart id="hfreq" title="Hours" data="${hourFrequencyData.data}" type="bar" />
           <t:chart id="loyaltyPie" title="Loyalty" data="${loyaltyPieData}" type="pie" />
           <t:chart id="osPie" title="OS" data="${osPieData}" type="pie" />
@@ -66,8 +67,8 @@
                     
           hits = new Highcharts.Chart(hits_options);
           loyalty = new Highcharts.Chart(loyalty_options);
-          /*
-          <%--
+          conversion = new Highcharts.Chart(conversion_options);
+          
           freq = new Highcharts.Chart($.extend(freq_options, {
         	  yAxis: {
         		  min: 0,
@@ -89,8 +90,8 @@
         		  }
         	  },
         	  legend: { enabled: false }
-          }));--%>
-          */
+          }));
+          
           hfreq = new Highcharts.Chart($.extend(hfreq_options, {
         	  yAxis: {
         		  min: 0,
@@ -117,6 +118,34 @@
           osPie = new Highcharts.Chart(osPie_options);
           actionsPie = new Highcharts.Chart(actionsPie_options);
           versionPie = new Highcharts.Chart(versionPie_options);
+          
+          /*
+          
+          requestData();
+          
+          function requestData() {
+        	  $.ajax({
+        	     url: '/stats/daily/hits.json',
+        	     success: function(json) {
+        	         $.each(json, function(event, value) {
+        	             hits.addSeries(value);
+        	         });
+        	     },
+        	     cache: false
+        	 });
+         };
+         
+         (function poll() {
+         setTimeout(function() {
+        	 console.log('suscribed');
+         $.ajax({url: '/stats/notify', async: true, success: function(json){
+        	    console.log(json);
+        	    $.each(json, function(event, value) {
+   	             hits.addSeries(value);
+   	         });
+         },  complete: poll})
+         }, 5000);
+         })();*/
          
      });
     </script>
@@ -128,6 +157,7 @@
       <li class="${ufn:active(origin, '.*(/stats/monthly).*$')}"><a href="/stats/monthly">month</a></li>
     </ul>
 
+    <div id="msg"></div>
     <div class="chart-group">
     <div class="fluid counters">
         <t:std counter="${uniquesStd}" title="Uniques" />
@@ -145,14 +175,20 @@
     <div class="chart">
       <div id="hfreq" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
-    </div><div class="chart-group">
+    </div>
+    <div class="chart-group">
+    <div class="chart">
+      <div id="conversion" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
+    </div>
+    </div>
+    <div class="chart-group">
     <div class="chart">
       <div id="loyalty" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
     </div><div class="chart-group">
-    <!--<div class="chart">
+    <div class="chart">
       <div id="freq" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
-    </div>-->
+    </div>
     </div><div class="chart-group">
     <div class="chart" style="width: 100%; margin: 10px 0;">
       <div id="loyaltyPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>

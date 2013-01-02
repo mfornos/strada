@@ -104,7 +104,8 @@ public class ChartTable
       double[] values = new double[rowsNum()];
       int i = 0;
       for (ChartData row : rows) {
-         values[i++] = ((Number) row.get(column)).doubleValue();
+         Number number = (Number) row.get(column);
+         values[i++] = (number == null) ? 0 : number.doubleValue();
       }
       return values;
    }
@@ -217,8 +218,8 @@ public class ChartTable
          if (column.isNumeric()) {
             int index = column.getIndex();
             Std std = getStd(index);
-            if (row.exists(index)) {
-               Number number = row.getNumber(index);
+            Number number = row.getNumber(index);
+            if (number != null) {
                std.compute(number);
             }
          }
