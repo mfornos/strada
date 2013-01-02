@@ -39,7 +39,7 @@ public class StradaStats extends ApplicationFrame
    private static final long serialVersionUID = 513296402814195928L;
 
    private static String[] ua = new String[] {
-         //"Opera/12.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/2.0; en)",
+         // "Opera/12.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/2.0; en)",
          "Opera/11.0 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)",
          "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
          "SonyEricssonK550i/R1JD Browser/NetFront/3.3 Profile/MIDP-2.0 Configuration/CLDC-1.1",
@@ -146,7 +146,7 @@ public class StradaStats extends ApplicationFrame
       for (DBObject obj : cursor) {
 
          try {
-            MongoDynamicChartData data = new MongoDynamicChartData(obj, selector, table);
+            MongoDynamicChartData data = new MongoDynamicChartData(obj, table, selector);
             table.addRow(data);
          } catch (Exception e) {
             e.printStackTrace();

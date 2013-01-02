@@ -13,14 +13,14 @@ import com.mongodb.DBObject;
 public class MongoDynamicChartData extends BasicChartData
 {
 
-   public MongoDynamicChartData(DBObject obj, String selector, ChartTable table)
+   public MongoDynamicChartData(DBObject obj, ChartTable table, String selector)
    {
 
-      this(obj, 0, selector, table);
+      this(obj, table, selector, 0);
 
    }
 
-   public MongoDynamicChartData(DBObject obj, int fixedColumn, String selector, ChartTable table)
+   public MongoDynamicChartData(DBObject obj, ChartTable table, String selector, int fixedColumn)
    {
 
       if (fixedColumn > -1) {
@@ -31,17 +31,14 @@ public class MongoDynamicChartData extends BasicChartData
 
       for (Map.Entry<String, Object> entry : dyn.entrySet()) {
 
-         if (!table.hasColumn(entry.getKey())) {
-            ChartColumn col = new ChartColumn(entry.getKey());
-            table.addColumn(col);
+         ChartColumn column = table.getColumn(entry.getKey());
+
+         if (column == null) {
+            column = new ChartColumn(entry.getKey());
+            table.addColumn(column);
          }
 
-         try {
-            ChartColumn column = table.getColumn(entry.getKey());
-            add(column.getIndex(), entry.getValue());
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
+         add(column.getIndex(), entry.getValue());
 
       }
    }
