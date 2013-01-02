@@ -6,7 +6,7 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-import example.webstats.StradaStats;
+import example.webstats.WebstatsExampleApp;
 
 
 @ApplicationPath("/stats")
@@ -15,7 +15,7 @@ public class WebApp extends Application
    @Override
    public Set<Class<?>> getClasses()
    {
-      new StradaStats();
+      new WebstatsExampleApp();
       final Set<Class<?>> classes = new HashSet<Class<?>>();
       classes.add(StatsResource.class);
       return classes;
