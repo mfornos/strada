@@ -5,9 +5,17 @@ $(function () {
   StatsApp.prototype = {
     init: function() {
 	    var that = this;
-        this.datepicker();
+        this.datepicker(that);
     },
-    datepicker: function() {
+    resetpicker: function() {
+    	if($('#datepicker-calendar').is(":visible")) {
+            $('#datepicker-calendar').hide();
+            $('#date-range-field a').html('&#9660;');
+            $('#date-range-field').css({borderBottomLeftRadius:5, borderBottomRightRadius:5});
+            $('#date-range-field a').css({borderBottomRightRadius:5});
+        }
+    },
+    datepicker: function(that) {
     	var to = new Date();
         var from = new Date(to.getTime() - 1000 * 60 * 60 * 24 * 14);
 
@@ -37,10 +45,15 @@ $(function () {
       	  var base = '/stats/daily/';
       	  var path = window.location.pathname;
       	  var parts = path.split("/");
-      	  if(parts.length > 2) {
+      	  if(parts.length > 3) {
       		  base = '/'+parts[1]+'/'+parts[2]+'/';
       	  }
-      	  window.location.href = base + $('#date-value').val();	  
+      	  var dateVal = $('#date-value').val();
+      	  if(dateVal == '/') { 
+              that.resetpicker();
+      		  return; 
+          }
+      	  window.location.href = base + dateVal;  
         });
         
      // initialize the special date dropdown field
@@ -73,12 +86,7 @@ $(function () {
         // by an external event, unlike a non-inline datepicker which is automatically
         // displayed/hidden by clicks within/without the datepicker element and datepicker respectively
         $('html').click(function() {
-          if($('#datepicker-calendar').is(":visible")) {
-            $('#datepicker-calendar').hide();
-            $('#date-range-field a').html('&#9660;');
-            $('#date-range-field').css({borderBottomLeftRadius:5, borderBottomRightRadius:5});
-            $('#date-range-field a').css({borderBottomRightRadius:5});
-          }
+          that.resetpicker();
         });
         
         // stop the click propagation when clicking on the calendar element

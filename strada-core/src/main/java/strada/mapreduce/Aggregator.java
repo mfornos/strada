@@ -1,4 +1,4 @@
-package strada.agg;
+package strada.mapreduce;
 
 import java.util.List;
 

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-import strada.agg.HierarchicalAgg;
+import strada.mapreduce.HierarchicalAgg;
 import strada.mapreduce.ScriptInterpolator;
 import strada.services.MapReduceService;
 import strada.summarizers.CountMinSketchSummarizer;

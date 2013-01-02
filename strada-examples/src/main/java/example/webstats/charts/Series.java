@@ -3,6 +3,7 @@ package example.webstats.charts;
 import humanize.Humanize;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -140,8 +141,8 @@ public class Series
       return out;
    }
 
-   public static String toDetailPieChart(ChartTable table, Map<String, Map<String, Double>> subData, int... columns)
-         throws JsonProcessingException
+   public static String toDetailPieChart(ChartTable table, Map<String, Map<String, Double>> subData, boolean percent,
+         int... columns) throws JsonProcessingException
    {
       Serie<Object[][]> serie = new Serie<Object[][]>();
       serie.data = new Object[columns.length][2];
@@ -153,7 +154,9 @@ public class Series
       for (int i = 0; i < columns.length; i++) {
          names[i] = table.getColumn(columns[i]).getName();
          stds[i] = table.getStd(table.getColumn(columns[i]).getIndex());
-         total += stds[i].getSum();
+         if (percent) {
+            total += stds[i].getSum();
+         }
       }
 
       SubSerie subSerie = new SubSerie();
@@ -161,14 +164,14 @@ public class Series
       for (int i = 0; i < columns.length; i++) {
 
          double sum = stds[i].getSum();
-
-         serie.data[i] = new Object[] { names[i], sum };
+         serie.data[i] = new Object[] { names[i], (percent) ? sum / total : sum };
 
          // Normalize sub-data value
          if (subData.containsKey(names[i])) {
             Map<String, Double> subVals = subData.get(names[i]);
             for (Map.Entry<String, Double> subVal : subVals.entrySet()) {
-               subSerie.data.add(new Object[] { subVal.getKey(), subVal.getValue() });
+               subSerie.data.add(new Object[] { subVal.getKey(),
+                     (percent) ? subVal.getValue() / total : subVal.getValue() });
             }
          }
 
@@ -315,5 +318,31 @@ public class Series
          serie.data[i] = new Object[] { names[i], stds[i].getSum() / total };
       }
       return serie;
+   }
+
+   public static Object toHourFrequency(ChartTable table, int column) throws JsonProcessingException
+   {
+      Serie<int[]> serie = new Serie<int[]>();
+
+      String[] labels = new String[24];
+      final int[] result = new int[24];
+
+      Calendar cal = Calendar.getInstance();
+
+      for (ChartData row : table.getRows()) {
+         cal.setTime(row.getDate(column));
+         int hour = cal.get(Calendar.HOUR_OF_DAY);
+         result[hour] += 1;
+      }
+
+      for (int i = 0; i < 24; i++) {
+
+         labels[i] = String.format("%s:00", i);
+      }
+
+      serie.data = result;
+
+      String out = om.writeValueAsString(new Object[] { serie });
+      return new FrequencyData(out, om.writeValueAsString(labels));
    }
 }
