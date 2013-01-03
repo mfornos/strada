@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import strada.mapreduce.HierarchicalAgg.Interpolators;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Files;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
@@ -24,9 +23,6 @@ import com.mongodb.MapReduceOutput;
  */
 public class CommandBuilder
 {
-   public static final String FINALIZE_SCRIPT_EXT = ".final";
-   public static final String REDUCE_SCRIPT_EXT = ".reduce";
-   public static final String MAP_SCRIPT_EXT = ".map";
 
    private static final Logger LOGGER = LoggerFactory.getLogger(CommandBuilder.class);
 
@@ -109,7 +105,7 @@ public class CommandBuilder
    public Callable<MapReduceOutput> buildCallable(final DBCollection collection)
    {
       final MapReduceCommand command = build();
-      
+
       return new Callable<MapReduceOutput>()
       {
          @Override
@@ -246,14 +242,10 @@ public class CommandBuilder
 
    private void setScriptsFromPathName()
    {
-      m = new File(pathName + MAP_SCRIPT_EXT);
-      Preconditions.checkArgument(m.exists(), "Please, provide a '%s%s' file", pathName, MAP_SCRIPT_EXT);
-      r = new File(pathName + REDUCE_SCRIPT_EXT);
-      Preconditions.checkArgument(r.exists(), "Please, provide a '%s%s' file", pathName, REDUCE_SCRIPT_EXT);
-      f = new File(pathName + FINALIZE_SCRIPT_EXT);
-      if (!f.exists()) {
-         f = null;
-      }
+      File[] files = ScriptLoader.loadScripts(pathName);
+      this.m = files[0];
+      this.r = files[1];
+      this.f = files[2];
    }
 
 }

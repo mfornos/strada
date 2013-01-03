@@ -175,17 +175,11 @@ public abstract class HierarchicalAgg implements Aggregator
 
    protected void loadScripts(String pathName) throws IOException
    {
+      File[] files = ScriptLoader.loadScripts(pathName);
 
-      File mapFile = new File(pathName + CommandBuilder.MAP_SCRIPT_EXT);
-      File reduceFile = new File(pathName + CommandBuilder.REDUCE_SCRIPT_EXT);
-      File finalFile = new File(pathName + CommandBuilder.FINALIZE_SCRIPT_EXT);
-
-      if (!finalFile.exists()) {
-         finalFile = null;
-      }
-
-      String mapScript = Files.toString(mapFile, Charset.defaultCharset());
-      String reduceScript = Files.toString(reduceFile, Charset.defaultCharset());
+      String mapScript = Files.toString(files[0], Charset.defaultCharset());
+      String reduceScript = Files.toString(files[1], Charset.defaultCharset());
+      File finalFile = files[2];
       String finalizeScript = finalFile == null ? null : Files.toString(finalFile, Charset.defaultCharset());
 
       for (String resolution : resolutions) {

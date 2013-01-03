@@ -53,71 +53,17 @@
     <script>
     var hits, loyalty; // globally available
     $(document).ready(function() {
-    	  
-    	  <t:chart id="hits" title="Hits" data="${hitsData}" type="area" />
-          <t:chart id="loyalty" title="Loyalty" data="${loyaltyData}" type="area" />
-          <t:chart id="conversion" title="Conversion" data="${conversionData}" type="area" />
-          <t:chart id="freq" title="Frequency" data="${frequencyData.data}" type="bar" />
-          <t:chart id="hfreq" title="Hours" data="${hourFrequencyData.data}" type="bar" />
-          <t:chart id="loyaltyPie" title="Loyalty" data="${loyaltyPieData}" type="pie" />
-          <t:chart id="osPie" title="OS" data="${osPieData}" type="pie" />
-          <t:chart id="actionsPie" title="Actions" data="${actionsPieData}" type="pie" />
-          <t:chart id="versionPie" title="Browser" data="${versionPieData}" type="pie" />
-    	  
-                    
-          hits = new Highcharts.Chart(hits_options);
-          loyalty = new Highcharts.Chart(loyalty_options);
-          conversion = new Highcharts.Chart(conversion_options);
-          
-          freq = new Highcharts.Chart($.extend(freq_options, {
-        	  yAxis: {
-        		  min: 0,
-        		  allowDecimals: false,
-        		  labels: {
-        			  style: {
-        				  color: '#FFF'
-        			  }
-        		  },
-        		  title: null
-        	  },
-        	  xAxis: {
-        		  title: null,
-        		  categories: ${frequencyData.labels},
-        		  labels: {
-        			  style: {
-        				  color: '#FFF'
-        			  }
-        		  }
-        	  },
-        	  legend: { enabled: false }
-          }));
-          
-          hfreq = new Highcharts.Chart($.extend(hfreq_options, {
-        	  yAxis: {
-        		  min: 0,
-        		  allowDecimals: false,
-        		  labels: {
-        			  style: {
-        				  color: '#FFF'
-        			  }
-        		  },
-        		  title: null
-        	  },
-        	  xAxis: {
-        		  title: null,
-        		  categories: ${hourFrequencyData.labels},
-        		  labels: {
-        			  style: {
-        				  color: '#FFF'
-        			  }
-        		  }
-        	  },
-        	  legend: { enabled: false }
-          }));
-          loyaltyPie = new Highcharts.Chart(loyaltyPie_options);
-          osPie = new Highcharts.Chart(osPie_options);
-          actionsPie = new Highcharts.Chart(actionsPie_options);
-          versionPie = new Highcharts.Chart(versionPie_options);
+    	
+        hits = new Highcharts.Chart(${hits});
+        loyalty = new Highcharts.Chart(${loyalty});
+        conversion = new Highcharts.Chart(${conversion});
+        freq = new Highcharts.Chart(${freqConfig});
+        hfreq = new Highcharts.Chart(${hfreqConfig});
+        actionsPie = new Highcharts.Chart(${actionsPie});
+        loyaltyPie = new Highcharts.Chart(${loyaltyPie});
+        osPie = new Highcharts.Chart(${osPie});
+        browserPie = new Highcharts.Chart(${browserPie});
+
           
           /*
           
@@ -196,7 +142,7 @@
     </div>
     <div class="chart" style="width: 100%; margin: 10px 0;">
       <div id="actionsPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>
-      <div id="versionPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>
+      <div id="browserPie" class="chart" style="min-width: 47%; height: 400px; margin: 0 5px;float:left;"></div>
     </div>
     </div>
     

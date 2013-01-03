@@ -2,6 +2,9 @@ package example.webstats;
 
 import strada.ioc.StradaModule;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
 import com.google.inject.Provides;
@@ -16,6 +19,28 @@ import example.webstats.rest.StatsResource;
 public class StatsModule extends AbstractModule
 {
 
+   @Inject
+   @Provides
+   @Singleton
+   DB providesDB(@Named("dbName") String dbName, MongoClient client)
+   {
+      DB db = client.getDB(dbName);
+      // db.dropDatabase();
+      return db;
+   }
+
+   @Provides
+   @Singleton
+   ObjectMapper providesObjectMapper()
+   {
+      ObjectMapper om = new ObjectMapper();
+      om.disable(SerializationFeature.WRAP_ROOT_VALUE);
+      om.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
+      om.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
+      om.setSerializationInclusion(Include.NON_NULL);
+      return om;
+   }
+
    @Override
    protected void configure()
    {
@@ -24,16 +49,6 @@ public class StatsModule extends AbstractModule
       bind(WebstatsAggregator.class);
       bind(StatsService.class);
       requestStaticInjection(StatsResource.class);
-   }
-
-   @Inject
-   @Provides
-   @Singleton
-   DB providesDB(@Named("dbName") String dbName, MongoClient client)
-   {
-      DB db = client.getDB(dbName);
-      //db.dropDatabase();
-      return db;
    }
 
 }

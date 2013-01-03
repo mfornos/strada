@@ -15,42 +15,17 @@ import strada.viz.ChartData;
 import strada.viz.ChartTable;
 import strada.viz.Std;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.primitives.Ints;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
+import example.webstats.charts.HighchartsConfig.Marker;
+
 // XXX quick and dirty
 public class Series
 {
-
-   public static class FrequencyData
-   {
-
-      final String data;
-      final String labels;
-
-      public FrequencyData(String data, String labels)
-      {
-         this.data = data;
-         this.labels = labels;
-      }
-
-      public String getData()
-      {
-         return data;
-      }
-
-      public String getLabels()
-      {
-         return labels;
-      }
-
-   }
 
    public static class Serie<T>
    {
@@ -61,6 +36,8 @@ public class Series
       public Map<String, Object> dataLabels = new HashMap<String, Object>();
       public Long pointInterval;
       public Date pointStart;
+      public String dashStyle;
+      public Boolean showInLegend;
 
       public Serie()
       {
@@ -69,20 +46,24 @@ public class Series
       }
    }
 
+   public static class Data
+   {
+      public Data(Object x, Object y)
+      {
+         this.x = x;
+         this.y = y;
+      }
+
+      public String color;
+      public Object x, y;
+      public Marker marker;
+   }
+
    public static class SubSerie
    {
       public List<Object[]> data = new ArrayList<Object[]>();
       public String name;
       public String innerSize = "60%";
-   }
-
-   static ObjectMapper om = new ObjectMapper();
-
-   static {
-      om.disable(SerializationFeature.WRAP_ROOT_VALUE);
-      om.disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
-      om.disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
-      om.setSerializationInclusion(Include.NON_NULL);
    }
 
    public static Map<String, Map<String, Double>> getSubData(DBCursor cursor, String selector)
@@ -127,22 +108,8 @@ public class Series
       return subData;
    }
 
-   public static String toData(ChartTable table, int... columns) throws JsonProcessingException
-   {
-      @SuppressWarnings("unchecked")
-      Serie<Object[][]>[] series = new Serie[columns.length];
-
-      for (int i = 0; i < columns.length; i++) {
-         String name = table.getColumn(columns[i]).getName();
-         series[i] = serieFromTable(table, columns[i], name);
-      }
-
-      String out = om.writeValueAsString(series);
-      return out;
-   }
-
-   public static String toDetailPieChart(ChartTable table, Map<String, Map<String, Double>> subData, boolean percent,
-         int... columns) throws JsonProcessingException
+   public static Object[] toDetailPieSeries(ChartTable table, Map<String, Map<String, Double>> subData,
+         boolean percent, int... columns) throws JsonProcessingException
    {
       Serie<Object[][]> serie = new Serie<Object[][]>();
       serie.data = new Object[columns.length][2];
@@ -178,11 +145,16 @@ public class Series
       }
 
       serie.size = "60%";
-      String out = om.writeValueAsString(new Object[] { serie, subSerie });
-      return out;
+      return new Object[] { serie, subSerie };
    }
 
-   public static FrequencyData toFrequency(ChartTable table, int column) throws JsonProcessingException
+   public static void toDetailPieSeries(HighchartsConfig conf, ChartTable table,
+         Map<String, Map<String, Double>> subData, boolean percent, int... columns) throws JsonProcessingException
+   {
+      conf.series = toDetailPieSeries(table, subData, percent, columns);
+   }
+
+   public static void toFrequencySeries(HighchartsConfig conf, ChartTable table, int column)
    {
       Serie<int[]> serie = new Serie<int[]>();
 
@@ -227,100 +199,11 @@ public class Series
 
       serie.data = Ints.concat(first, result, last);
 
-      String out = om.writeValueAsString(new Object[] { serie });
-      return new FrequencyData(out, om.writeValueAsString(labels));
+      conf.series = new Object[] { serie };
+      conf.xAxis.categories = labels;
    }
 
-   public static String toHourlyDenseData(ChartTable table, int... cs) throws JsonProcessingException
-   {
-      @SuppressWarnings("unchecked")
-      Serie<List<Number>>[] series = new Serie[cs.length];
-      int j = 0;
-      for (int c : cs) {
-         Serie<List<Number>> serie = new Serie<List<Number>>();
-         serie.pointStart = table.getRow(0).getDate(0);
-         serie.pointInterval = 3600 * 1000L;
-         serie.type = "area";
-         serie.data = new ArrayList<Number>();
-         serie.name = table.getColumn(c).getName();
-
-         Date lastDate = null;
-         for (ChartData row : table.getRows()) {
-            // fill empty hours
-            Date currentDate = row.getDate(0);
-            if (lastDate != null) {
-               long secs = (currentDate.getTime() - lastDate.getTime()) / 1000;
-               long hours = secs / 3600;
-               if (hours > 1) {
-                  for (int h = 0; h < hours - 1; h++) {
-                     serie.data.add(0);
-                  }
-               }
-            }
-            Number number = row.getNumber(c);
-            serie.data.add(number);
-            lastDate = currentDate;
-         }
-         series[j++] = serie;
-      }
-
-      return om.writeValueAsString(series);
-   }
-
-   public static String toPieData(ChartTable table, int... columns) throws JsonProcessingException
-   {
-      Serie<Object[][]> serie = toPieChartSerie(table, columns);
-      String out = om.writeValueAsString(new Serie[] { serie });
-      return out;
-   }
-
-   protected static void putInBin(Map<String, Double> bins, double v, String key)
-   {
-      if (!bins.containsKey(key)) {
-         bins.put(key, v);
-      } else {
-         bins.put(key, bins.get(v) + v);
-      }
-   }
-
-   private static Serie<Object[][]> serieFromTable(ChartTable table, int rowIndex, String name)
-   {
-      Serie<Object[][]> serie = new Serie<Object[][]>();
-      serie.data = new Object[table.rowsNum()][2];
-      serie.name = name;
-      int i = 0;
-      for (ChartData row : table.getRows()) {
-         Date date = row.getDate(0);
-         Number number = row.getNumber(rowIndex);
-         serie.data[i][0] = date.getTime();
-         serie.data[i][1] = number;
-         i++;
-      }
-      return serie;
-   }
-
-   private static Serie<Object[][]> toPieChartSerie(ChartTable table, int... columns)
-   {
-      Serie<Object[][]> serie = new Serie<Object[][]>();
-      serie.data = new Object[columns.length][2];
-      Std[] stds = new Std[columns.length];
-      String[] names = new String[columns.length];
-
-      double total = 0;
-
-      for (int i = 0; i < columns.length; i++) {
-         names[i] = table.getColumn(columns[i]).getName();
-         stds[i] = table.getStd(table.getColumn(columns[i]).getIndex());
-         total += stds[i].getSum();
-      }
-
-      for (int i = 0; i < columns.length; i++) {
-         serie.data[i] = new Object[] { names[i], stds[i].getSum() / total };
-      }
-      return serie;
-   }
-
-   public static Object toHourFrequency(ChartTable table, int column) throws JsonProcessingException
+   public static void toHourFrequencySeries(HighchartsConfig hfreqConfig, ChartTable table, int column)
    {
       Serie<int[]> serie = new Serie<int[]>();
 
@@ -342,7 +225,130 @@ public class Series
 
       serie.data = result;
 
-      String out = om.writeValueAsString(new Object[] { serie });
-      return new FrequencyData(out, om.writeValueAsString(labels));
+      hfreqConfig.series = new Object[] { serie };
+      hfreqConfig.xAxis.categories = labels;
+   }
+
+   public static Serie<List<Number>>[] toHourlyDenseSeries(ChartTable table, int... cs)
+   {
+      @SuppressWarnings("unchecked")
+      Serie<List<Number>>[] series = new Serie[cs.length];
+      int j = 0;
+      for (int c : cs) {
+         Serie<List<Number>> serie = new Serie<List<Number>>();
+         serie.pointStart = table.getRow(0).getDate(0);
+         serie.pointInterval = 3600 * 1000L;
+         serie.data = new ArrayList<Number>();
+         serie.name = table.getColumn(c).getName();
+
+         Date lastDate = null;
+         for (ChartData row : table.getRows()) {
+            // fill empty hours
+            Date currentDate = row.getDate(0);
+            if (lastDate != null) {
+               long secs = (currentDate.getTime() - lastDate.getTime()) / 1000;
+               long hours = secs / 3600;
+               if (hours > 1) {
+                  for (int h = 0; h < hours - 1; h++) {
+                     serie.data.add(0);
+                  }
+               }
+            }
+            Number number = row.getNumber(c);
+            serie.data.add((number == null) ? 0 : number);
+            lastDate = currentDate;
+         }
+         series[j++] = serie;
+      }
+      return series;
+   }
+
+   public static void toHourlyDenseSeries(HighchartsConfig conf, ChartTable table, int... cs)
+   {
+      conf.series = toHourlyDenseSeries(table, cs);
+   }
+
+   public static Serie<Object[][]> toPieSeries(ChartTable table, int... columns)
+   {
+      Serie<Object[][]> serie = new Serie<Object[][]>();
+      serie.data = new Object[columns.length][2];
+      Std[] stds = new Std[columns.length];
+      String[] names = new String[columns.length];
+
+      double total = 0;
+
+      for (int i = 0; i < columns.length; i++) {
+         names[i] = table.getColumn(columns[i]).getName();
+         stds[i] = table.getStd(table.getColumn(columns[i]).getIndex());
+         total += stds[i].getSum();
+      }
+
+      for (int i = 0; i < columns.length; i++) {
+         serie.data[i] = new Object[] { names[i], stds[i].getSum() / total };
+      }
+      return serie;
+   }
+
+   public static void toPieSeries(HighchartsConfig conf, ChartTable table, int... columns)
+   {
+      conf.series = new Object[] { toPieSeries(table, columns) };
+   }
+
+   public static Serie<Data[]>[] toSeries(ChartTable table, int... columns)
+   {
+      @SuppressWarnings("unchecked")
+      Serie<Data[]>[] series = new Serie[columns.length * 2];
+
+      for (int i = 0; i < columns.length; i++) {
+         String name = table.getColumn(columns[i]).getName();
+         series[i] = serieFromTable(table, columns[i], name);
+      }
+
+      // TODO configurable open interval!
+      // open interval
+      for (int i = 0; i < columns.length; i++) {
+         // String name = table.getColumn(columns[i]).getName();
+         Serie<Data[]> serie = new Serie<Data[]>();
+         serie.data = new Data[2];
+         serie.showInLegend = false;
+         serie.dashStyle = "ShortDash";
+         for (int j = 1; j < 3; j++) {
+            ChartData row = table.getRow(table.rowsNum() - j);
+            serie.data[j - 1] = new Data(row.getDate(0), row.getNumber(columns[i]));
+         }
+         series[i + columns.length] = serie;
+      }
+
+      return series;
+   }
+
+   public static void toSeries(HighchartsConfig conf, ChartTable table, int... columns)
+   {
+      conf.series = toSeries(table, columns);
+   }
+
+   private static Serie<Data[]> serieFromTable(ChartTable table, int rowIndex, String name)
+   {
+      Serie<Data[]> serie = new Serie<Data[]>();
+      // TODO configurable open interval!
+      // open interval
+      serie.data = new Data[table.rowsNum() - 1];
+      serie.name = name;
+
+      int i = 0;
+      int lastIndex = table.rowsNum() - 1;
+
+      for (ChartData row : table.getRows()) {
+         Date date = row.getDate(0);
+         Number number = row.getNumber(rowIndex);
+         Data data = new Data(date.getTime(), number);
+         serie.data[i] = data;
+         i++;
+         if (i == lastIndex) {
+            break;
+         }
+      }
+
+      return serie;
    }
 }
