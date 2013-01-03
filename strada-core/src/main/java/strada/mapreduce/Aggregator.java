@@ -11,4 +11,6 @@ public interface Aggregator
    void addListener(AggregationListener listener);
 
    boolean removeListener(AggregationListener listener);
+
+   String[] getResolutions();
 }

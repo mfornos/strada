@@ -70,26 +70,6 @@ public class StatsResource
    }
 
    @GET
-   @Path("daily/hits.json")
-   @Produces(MediaType.APPLICATION_JSON)
-   public String getJson() throws ParseException, JsonProcessingException
-   {
-      DBCursor cursor = q.openCursor("daily", null, null);
-      ChartTable table = q.getData(cursor);
-      return Series.toData(table, 1, 2);
-   }
-
-   @GET
-   @ManagedAsync
-   @Path("notify")
-   @Produces(MediaType.APPLICATION_JSON)
-   public void notify(@Suspended final AsyncResponse ar, @QueryParam("id") int requestId) throws IOException,
-         InterruptedException
-   {
-      suspended.put(ar);
-   }
-
-   @GET
    @Path("{frame}/{begin}/{end}")
    public Response getIndex(@PathParam("frame") String frame, @PathParam("begin") String begin,
          @PathParam("end") String end) throws ServletException, IOException, ParseException
@@ -116,7 +96,7 @@ public class StatsResource
       request.setAttribute("uniquesStd", table.getStd(2));
       request.setAttribute("firstStd", table.getStd(5));
       request.setAttribute("repeatStd", table.getStd(6));
-      
+
       request.setAttribute("loyaltyPieData", Series.toPieData(table, 5, 6));
       request.setAttribute("osPieData", Series.toPieData(os, os.getColumnIndexes(1)));
       request.setAttribute("browserPieData", Series.toPieData(browser, browser.getColumnIndexes(1)));
@@ -129,6 +109,16 @@ public class StatsResource
    }
 
    @GET
+   @Path("daily/hits.json")
+   @Produces(MediaType.APPLICATION_JSON)
+   public String getJson() throws ParseException, JsonProcessingException
+   {
+      DBCursor cursor = q.openCursor("daily", null, null);
+      ChartTable table = q.getData(cursor);
+      return Series.toData(table, 1, 2);
+   }
+
+   @GET
    @Path("more/{days}/{events}")
    public Response getMore(@PathParam("days") int days, @PathParam("events") int events) throws URISyntaxException,
          IllegalStateException, JsonProcessingException, ParseException
@@ -136,20 +126,30 @@ public class StatsResource
       q.generateTraffic(days, events);
       q.aggregate();
 
-//      try {
-//         if (!suspended.isEmpty()) {
-//            DBCursor cursor = openCursor("daily", null, null);
-//            ChartTable table = stats.getData(cursor);
-//            AsyncResponse ar = suspended.take();
-//            ar.resume(Series.toData(table, 1, 2));
-//         }
-//      } catch (Exception e) {
-//         e.printStackTrace();
-//      }
-//
-//      System.out.println("sent");
+      // try {
+      // if (!suspended.isEmpty()) {
+      // DBCursor cursor = openCursor("daily", null, null);
+      // ChartTable table = stats.getData(cursor);
+      // AsyncResponse ar = suspended.take();
+      // ar.resume(Series.toData(table, 1, 2));
+      // }
+      // } catch (Exception e) {
+      // e.printStackTrace();
+      // }
+      //
+      // System.out.println("sent");
 
       return toHome();
+   }
+
+   @GET
+   @ManagedAsync
+   @Path("notify")
+   @Produces(MediaType.APPLICATION_JSON)
+   public void notify(@Suspended final AsyncResponse ar, @QueryParam("id") int requestId) throws IOException,
+         InterruptedException
+   {
+      suspended.put(ar);
    }
 
    protected Response forward(String uri) throws ServletException, IOException
@@ -157,8 +157,6 @@ public class StatsResource
       context.getRequestDispatcher(uri).forward(request, response);
       return Response.ok().build();
    }
-
-
 
    protected Response toHome() throws URISyntaxException
    {

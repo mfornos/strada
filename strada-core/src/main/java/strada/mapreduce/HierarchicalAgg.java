@@ -104,9 +104,16 @@ public abstract class HierarchicalAgg implements Aggregator
          }
       } catch (Exception e) {
          LOGGER.error(e.getMessage(), e);
+         throw new RuntimeException(e);
       }
 
       return response;
+   }
+
+   @Override
+   public String[] getResolutions()
+   {
+      return resolutions;
    }
 
    @Override

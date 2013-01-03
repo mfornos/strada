@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public class ScriptInterpolator implements Replacer
 {
 
-   private static final Pattern VAR = Pattern.compile("\\$\\{(.+)\\}");
+   private static final Pattern VAR = Pattern.compile("\\$\\{([a-zA-Z0-9_]+)\\}");
 
    private final Map<String, String> vars;
 

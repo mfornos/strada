@@ -109,6 +109,7 @@ public class CommandBuilder
    public Callable<MapReduceOutput> buildCallable(final DBCollection collection)
    {
       final MapReduceCommand command = build();
+      
       return new Callable<MapReduceOutput>()
       {
          @Override
