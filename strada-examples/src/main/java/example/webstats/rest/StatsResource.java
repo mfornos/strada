@@ -55,37 +55,36 @@ public class StatsResource
 
    @Inject
    private static StatsService q;
-   
+
    @Inject
    private static ObjectMapper om;
 
    @GET
    @Path("drop")
-   public Response getDrop() throws ServletException, IOException, URISyntaxException
+   public Response drop() throws ServletException, IOException, URISyntaxException
    {
       q.drop();
       return toHome();
    }
 
    @GET
-   public Response getIndex() throws ServletException, IOException, ParseException
+   public Response index() throws ServletException, IOException, ParseException
    {
-      return getIndex("daily", null, null);
+      return index("daily", null, null);
    }
 
    @GET
    @Path("{frame}")
-   public Response getIndex(@PathParam("frame") String frame) throws ServletException, IOException, ParseException
+   public Response index(@PathParam("frame") String frame) throws ServletException, IOException, ParseException
    {
-      return getIndex(frame, null, null);
+      return index(frame, null, null);
    }
 
    @GET
    @Path("{frame}/{begin}/{end}")
-   public Response getIndex(@PathParam("frame") String frame, @PathParam("begin") String begin,
+   public Response index(@PathParam("frame") String frame, @PathParam("begin") String begin,
          @PathParam("end") String end) throws ServletException, IOException, ParseException
    {
-      // TODO move to Facade service... Stats
       DBCursor cursor = q.openCursor(frame, begin, end);
 
       ChartTable os = q.getDynamicData(cursor, "value.os");
@@ -98,15 +97,8 @@ public class StatsResource
       addChart(frame, table, "loyalty", "First vs Repeat", 5, 6);
       addChart(frame, conversion, "conversion", "Conversion", conversion.getColumnIndexes(1));
 
-      HighchartsConfig freqConfig = new DefaultChartConfig("freq", "Frequency");
-      freqAxis(freqConfig);
-      Series.toFrequencySeries(freqConfig, table, 6);
-      request.setAttribute("freqConfig", om.writeValueAsString(freqConfig));
-
-      HighchartsConfig hfreqConfig = new DefaultChartConfig("hfreq", "Hours");
-      freqAxis(hfreqConfig);
-      Series.toHourFrequencySeries(hfreqConfig, q.getData(q.openCursor("hourly", begin, end)), 0);
-      request.setAttribute("hfreqConfig", om.writeValueAsString(hfreqConfig));
+      addFrequencyChart(table, 6, "freq", "Frequency");
+      addHourFrequencyChart(q.getData(q.openCursor("hourly", begin, end)), 0, "hfreq", "Hours");
 
       request.setAttribute("hitsStd", table.getStd(1));
       request.setAttribute("uniquesStd", table.getStd(2));
@@ -116,74 +108,25 @@ public class StatsResource
       addPieChart(table, "loyaltyPie", "Loyalty");
       addPieChart(os, "osPie", "OS");
       addPieChart(action, "actionsPie", "Actions");
-      addPieChart(browser, Series.getSubData(cursor, "value.version"), "browserPie", "Browsers");
+      addPieChart(browser, Series.detailData(cursor, "value.version"), "browserPie", "Browsers");
 
       request.setAttribute("origin", request.getRequestURL());
       return forward("/index.jsp");
    }
 
-   protected void addChart(String frame, ChartTable table, String id, String title, int... cs)
-         throws JsonProcessingException
-   {
-      HighchartsConfig config = new DefaultChartConfig(id, title);
-      serieByFrame(frame, config, table, cs);
-      request.setAttribute(id, om.writeValueAsString(config));
-   }
-
-   protected void addPieChart(ChartTable table, String id, String title) throws JsonProcessingException
-   {
-      HighchartsConfig config = new DefaultChartConfig(id, title);
-      config.chart.type = ChartType.pie;
-      Series.toPieSeries(config, table, table.getColumnIndexes(1));
-      request.setAttribute(id, om.writeValueAsString(config));
-   }
-
-   protected void addPieChart(ChartTable table, Map<String, Map<String, Double>> detail, String id, String title)
-         throws JsonProcessingException
-   {
-      HighchartsConfig config = new DefaultChartConfig(id, title);
-      config.chart.type = ChartType.pie;
-      Series.toDetailPieSeries(config, table, detail, false, table.getColumnIndexes(1));
-      request.setAttribute(id, om.writeValueAsString(config));
-   }
-
-   protected void freqAxis(HighchartsConfig freqConfig)
-   {
-      freqConfig.chart.type = ChartType.bar;
-      freqConfig.yAxis = new Axis();
-      freqConfig.yAxis.allowDecimals = false;
-      freqConfig.yAxis.title = new Title();
-      freqConfig.yAxis.labels = freqConfig.labels;
-      freqConfig.yAxis.title.text = "";
-      freqConfig.yAxis.min = 0;
-      freqConfig.xAxis = new Axis();
-      freqConfig.xAxis.labels = freqConfig.labels;
-      freqConfig.legend = new Legend();
-      freqConfig.legend.enabled = false;
-   }
-
-   protected void serieByFrame(String frame, HighchartsConfig conf, ChartTable table, int... cs)
-   {
-      if ("hourly".equals(frame)) {
-         Series.toHourlyDenseSeries(conf, table, cs);
-      } else {
-         Series.toSeries(conf, table, cs);
-      }
-   }
-
    @GET
    @Path("daily/hits.json")
    @Produces(MediaType.APPLICATION_JSON)
-   public String getJson() throws ParseException, JsonProcessingException
+   public String json() throws ParseException, JsonProcessingException
    {
       DBCursor cursor = q.openCursor("daily", null, null);
       ChartTable table = q.getData(cursor);
-      return om.writeValueAsString(Series.toSeries(table, 1, 2));
+      return om.writeValueAsString(Series.timeSeries(table, 1, 2));
    }
 
    @GET
    @Path("more/{days}/{events}")
-   public Response getMore(@PathParam("days") int days, @PathParam("events") int events) throws URISyntaxException,
+   public Response more(@PathParam("days") int days, @PathParam("events") int events) throws URISyntaxException,
          IllegalStateException, JsonProcessingException, ParseException
    {
       q.generateTraffic(days, events);
@@ -215,10 +158,78 @@ public class StatsResource
       suspended.put(ar);
    }
 
+   protected void addChart(String frame, ChartTable table, String id, String title, int... cs)
+         throws JsonProcessingException
+   {
+      HighchartsConfig config = new DefaultChartConfig(id, title);
+      serieByFrame(frame, config, table, cs);
+      request.setAttribute(id, om.writeValueAsString(config));
+   }
+
+   protected void addFrequencyChart(ChartTable table, int column, String id, String title)
+         throws JsonProcessingException
+   {
+      HighchartsConfig freqConfig = new DefaultChartConfig(id, title);
+      freqAxis(freqConfig);
+      Series.frequencySeries(freqConfig, table, column);
+      request.setAttribute(id, om.writeValueAsString(freqConfig));
+   }
+
+   protected void addHourFrequencyChart(ChartTable table, int column, String id, String title) throws ParseException,
+         JsonProcessingException
+   {
+      HighchartsConfig hfreqConfig = new DefaultChartConfig(id, title);
+      freqAxis(hfreqConfig);
+      Series.hourFrequencySeries(hfreqConfig, table, column);
+      request.setAttribute(id, om.writeValueAsString(hfreqConfig));
+   }
+
+   protected void addPieChart(ChartTable table, Map<String, Map<String, Double>> detail, String id, String title)
+         throws JsonProcessingException
+   {
+      HighchartsConfig config = new DefaultChartConfig(id, title);
+      config.chart.type = ChartType.pie;
+      Series.pieDetailSeries(config, table, detail, false, table.getColumnIndexes(1));
+      request.setAttribute(id, om.writeValueAsString(config));
+   }
+
+   protected void addPieChart(ChartTable table, String id, String title) throws JsonProcessingException
+   {
+      HighchartsConfig config = new DefaultChartConfig(id, title);
+      config.chart.type = ChartType.pie;
+      Series.pieSeries(config, table, table.getColumnIndexes(1));
+      request.setAttribute(id, om.writeValueAsString(config));
+   }
+
    protected Response forward(String uri) throws ServletException, IOException
    {
       context.getRequestDispatcher(uri).forward(request, response);
       return Response.ok().build();
+   }
+
+   protected void freqAxis(HighchartsConfig freqConfig)
+   {
+      freqConfig.chart.type = ChartType.bar;
+      freqConfig.yAxis = new Axis();
+      freqConfig.yAxis.allowDecimals = false;
+      freqConfig.yAxis.title = new Title();
+      freqConfig.yAxis.labels = freqConfig.labels;
+      freqConfig.yAxis.title.text = "";
+      freqConfig.yAxis.gridLineColor = "#363836";
+      freqConfig.yAxis.min = 0;
+      freqConfig.xAxis = new Axis();
+      freqConfig.xAxis.labels = freqConfig.labels;
+      freqConfig.legend = new Legend();
+      freqConfig.legend.enabled = false;
+   }
+
+   protected void serieByFrame(String frame, HighchartsConfig conf, ChartTable table, int... cs)
+   {
+      if ("hourly".equals(frame)) {
+         Series.hourlyDenseSeries(conf, table, cs);
+      } else {
+         Series.timeSeriesOpenEnd(conf, table, cs);
+      }
    }
 
    protected Response toHome() throws URISyntaxException

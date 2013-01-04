@@ -9,7 +9,7 @@ public class DefaultChartConfig extends HighchartsConfig
       super();
 
       chart.renderTo = id;
-      chart.type = ChartType.area;
+      chart.type = ChartType.line;
       chart.borderColor = "#CCC";
       chart.backgroundColor = "#414541";
       chart.borderWidth = 2.5;
@@ -18,7 +18,13 @@ public class DefaultChartConfig extends HighchartsConfig
       
       plotOptions = new PlotOptions();
       plotOptions.series = new Series();
-      plotOptions.series.allowPointSelect = true;
+      plotOptions.series.allowPointSelect = false;
+      plotOptions.series.lineWidth = 3;
+      plotOptions.series.marker = new Marker();
+      plotOptions.series.marker.fillColor = "#414541";
+      plotOptions.series.marker.lineWidth = 1.5;
+      plotOptions.series.marker.lineColor = null;
+      plotOptions.series.marker.symbol = "circle";
 
       colors = new String[] { "#61D2D6", "#FFE44D", "#B5E156", "#EA3556", "#82187C", "#DB843D", "#92A8CD", "#A47D7C",
             "#B5CA92" };
@@ -51,6 +57,6 @@ public class DefaultChartConfig extends HighchartsConfig
       yAxis = new Axis();
       yAxis.labels = labels;
       yAxis.title = xAxis.title;
-      yAxis.gridLineColor = "#CCC";
+      yAxis.gridLineColor = "#363836";
    }
 }

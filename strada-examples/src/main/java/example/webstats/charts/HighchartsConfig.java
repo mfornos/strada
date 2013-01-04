@@ -1,11 +1,12 @@
 package example.webstats.charts;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 public class HighchartsConfig
 {
    public static enum ChartType {
-      area, areaspline, pie, bar
+      area, line, areaspline, pie, bar, column, scatter
    };
 
    public Chart chart;
@@ -46,10 +47,11 @@ public class HighchartsConfig
       public String[] categories;
    }
 
-   public static  class Series
+   public static class Series
    {
       public Boolean allowPointSelect;
       public Marker marker;
+      public Number lineWidth;
    }
 
    public static class States
@@ -60,6 +62,7 @@ public class HighchartsConfig
    public static class Marker extends Style
    {
       public States states;
+      public String symbol;
    }
 
    public static class PlotOptions
@@ -89,6 +92,7 @@ public class HighchartsConfig
       public String color;
       public String cursor;
       public String fillColor;
+      @JsonInclude
       public String lineColor;
       public Number lineWidth;
    }
@@ -110,5 +114,5 @@ public class HighchartsConfig
       public Number borderWidth;
       public Boolean plotShadow;
    }
-   
+
 }

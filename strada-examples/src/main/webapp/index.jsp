@@ -57,8 +57,8 @@
         hits = new Highcharts.Chart(${hits});
         loyalty = new Highcharts.Chart(${loyalty});
         conversion = new Highcharts.Chart(${conversion});
-        freq = new Highcharts.Chart(${freqConfig});
-        hfreq = new Highcharts.Chart(${hfreqConfig});
+        freq = new Highcharts.Chart(${freq});
+        hfreq = new Highcharts.Chart(${hfreq});
         actionsPie = new Highcharts.Chart(${actionsPie});
         loyaltyPie = new Highcharts.Chart(${loyaltyPie});
         osPie = new Highcharts.Chart(${osPie});
