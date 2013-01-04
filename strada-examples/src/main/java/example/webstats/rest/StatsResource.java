@@ -159,11 +159,6 @@ public class StatsResource
    public String funnel(@PathParam("frame") String frame, @PathParam("country") String country,
          @QueryParam("steps") String stepsParam) throws JsonProcessingException
    {
-
-      // DBCursor cu = stats.find(frame, null);
-      // for(DBObject o : cu) {
-      // System.out.println(o);
-      // }
       String[] steps = stepsParam.split(",");
       DBObject query;
       String base;

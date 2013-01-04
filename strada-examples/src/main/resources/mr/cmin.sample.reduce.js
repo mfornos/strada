@@ -15,11 +15,12 @@ function(id, values) {
         first : 0,
         repeat: 0
       },
-      actions: {},
-      country: {},
-      os     : {},
-      browser: {},
-      version: {},
+      actions   : {},
+      actbrowser: {},
+      country   : {},
+      os        : {},
+      browser   : {},
+      version   : {},
       conversion: {}
     };
     
@@ -90,6 +91,12 @@ function(id, values) {
      for (var key in v.country) {
          if(result.country[key] == null) result.country[key] = {};
          objGroup(v.country[key], result.country[key]);
+     }
+     
+     // Actions by browser
+     for (var key in v.actbrowser) {
+         if(result.actbrowser[key] == null) result.actbrowser[key] = {};
+         objGroup(v.actbrowser[key], result.actbrowser[key]);
      }
         
         // var rkey = key + "_returning";
