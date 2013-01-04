@@ -16,6 +16,8 @@ import com.clearspring.analytics.stream.frequency.CountMinSketch;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 
+import example.webstats.hits.Hit.Action;
+
 public class PointWriter
 {
    private final Feature counter = new Counter("hits");
@@ -39,7 +41,10 @@ public class PointWriter
 
       DataPoint point = new DataPoint(hit.websiteId + "_" + hit.ip);
       point.withTimeUnit(TimeUnit.HOUR).withTimestamp(hit.ts);
-      point.withCollection(traffic).add(toActions(hit));
+      point.withCollection(traffic);
+      if (hit.hasActions()) {
+         addActions(point, hit);
+      }
       point.add(new DateTime("ts", hit.ts), new Value("ip", hit.ip), counter);
 
       addUA(point, hit);
@@ -103,12 +108,19 @@ public class PointWriter
       return traffic;
    }
 
-   private Counter toActions(Hit hit)
+   private void addActions(DataPoint point, Hit hit)
    {
-      Counter action = new Counter("action");
-      for (String name : hit.actions) {
-         action.add(name);
+      Counter counters = new Counter("actions");
+      Value dimensions = new Value("actions", null);
+
+      for (Action a : hit.actions) {
+         Counter c = new Counter(a.name);
+         c.add(new Counter("count"));
+         counters.add(c);
+         Value d = new Value(a.name, null);
+         d.add(new Value("country", a.country));
+         dimensions.add(d);
       }
-      return action;
+      point.add(counters, dimensions);
    }
 }

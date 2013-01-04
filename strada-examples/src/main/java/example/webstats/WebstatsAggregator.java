@@ -35,6 +35,8 @@ public class WebstatsAggregator extends HierarchicalAgg
 
    private final Map<String, Summarizer<CountMinSketch>> freqs;
 
+   private String conversions;
+
    @Inject
    public WebstatsAggregator(DB db, MapReduceService mrs) throws IOException
    {
@@ -46,16 +48,9 @@ public class WebstatsAggregator extends HierarchicalAgg
       this.proc = new PointWriter(db, toArray(freqs.values()));
       this.mrs = mrs;
 
+      this.conversions = "['oranges', 'download']";
       initInterpolators();
       loadScripts(SAMPLE_MR_PATH);
-   }
-
-   // XXX testing
-   @Override
-   protected void onBuilder(CommandBuilder builder)
-   {
-      // no cutoff
-      builder.query(null);
    }
 
    public void clearFrequencies()
@@ -91,16 +86,29 @@ public class WebstatsAggregator extends HierarchicalAgg
       return resolution + "_stats";
    }
 
+   // XXX testing
+   @Override
+   protected void onBuilder(CommandBuilder builder)
+   {
+      // no cutoff
+      builder.query(null);
+   }
+
    @Override
    protected Future<MapReduceOutput> submit(Callable<MapReduceOutput> callable)
    {
       return mrs.submit(callable);
    }
 
+   public void setConversions(String conversions)
+   {
+      this.conversions = conversions;
+   }
+
    private void initInterpolators()
    {
       ScriptInterpolator reduce = new ScriptInterpolator();
-      reduce.addVar("conversions", "['oranges', 'apples']");
+      reduce.addVar("conversions", conversions);
 
       ScriptInterpolator sc = new ScriptInterpolator();
       sc.addVar("date", "new Date(this._id.d.getFullYear(), this._id.d.getMonth(),this._id.d.getDate(),this._id.d.getHours(), 0, 0, 0)");

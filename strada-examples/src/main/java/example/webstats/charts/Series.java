@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import strada.util.Walker;
 import strada.viz.ChartData;
@@ -68,6 +69,8 @@ public class Series
       public String name;
       public String innerSize = "60%";
    }
+
+   public static final TimeZone UTC = TimeZone.getTimeZone("GMT+00:00");
 
    private static long millisInDay = 60 * 60 * 24 * 1000;
 
@@ -170,7 +173,7 @@ public class Series
       String[] labels = new String[24];
       final int[] result = new int[24];
 
-      Calendar cal = Calendar.getInstance();
+      Calendar cal = Calendar.getInstance(UTC);
 
       for (ChartData row : table.getRows()) {
          cal.setTime(row.getDate(column));
@@ -178,9 +181,12 @@ public class Series
          result[hour] += 1;
       }
 
-      for (int i = 0; i < 24; i++) {
+      int lastHour = result[23];
+      result[23] = result[0];
+      result[0] = lastHour;
 
-         labels[i] = String.format("%s:00", i);
+      for (int i = 0; i < 24; i++) {
+         labels[i] = String.format("%s:00", i + 1);
       }
 
       serie.data = result;
@@ -305,17 +311,19 @@ public class Series
       return timeSeries(table, 0, columns);
    }
 
+   @SuppressWarnings("unchecked")
    public static Serie<Data[]>[] timeSeries(ChartTable table, int skipRows, int[] columns)
    {
-      @SuppressWarnings("unchecked")
-      Serie<Data[]>[] series = new Serie[columns.length];
+      List<Serie<Data[]>> series = new ArrayList<Serie<Data[]>>();
 
       for (int i = 0; i < columns.length; i++) {
-         String name = table.getColumn(columns[i]).getName();
-         series[i] = timeSerie(table, columns[i], skipRows, name);
+         if (columns[i] > -1) {
+            String name = table.getColumn(columns[i]).getName();
+            series.add(timeSerie(table, columns[i], skipRows, name));
+         }
       }
 
-      return series;
+      return series.toArray(new Serie[] {});
    }
 
    public static void timeSeries(HighchartsConfig conf, ChartTable table, int... columns)
@@ -334,9 +342,9 @@ public class Series
          serie.data = new Data[2];
          serie.showInLegend = false;
          serie.dashStyle = "ShortDash";
-         for (int j = 1; j < 3; j++) {
+         for (int j = 2, n = 0; j > 0; j--) {
             ChartData row = table.getRow(table.rowsNum() - j);
-            serie.data[j - 1] = new Data(zeroTime(row.getDate(0)), row.get(columns[i]));
+            serie.data[n++] = new Data(zeroTime(row.getDate(0)), row.get(columns[i]));
          }
          openSeries[i] = serie;
       }

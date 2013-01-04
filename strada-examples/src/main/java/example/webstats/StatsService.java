@@ -9,9 +9,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
+import strada.viz.ChartColumn.ColumnType;
 import strada.viz.ChartTable;
 import strada.viz.MongoTableBuilder;
-import strada.viz.ChartColumn.ColumnType;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -21,7 +21,9 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
 
+import example.webstats.charts.Series;
 import example.webstats.hits.Hit;
+import example.webstats.hits.Hit.Action;
 import example.webstats.misc.RandomString;
 
 @Singleton
@@ -37,6 +39,14 @@ public class StatsService
    private final DB db;
    private final Random r = new Random();
    private final RandomString rs = new RandomString(15);
+
+   private static Action[] actions = new Action[] { new Action("es", "signup"), new Action("es", "dummy"),
+         new Action("es", "download"), new Action("es", "other"), new Action("es", "other 2"),
+         new Action("es", "recommend") };
+   // Test cohort
+   private static Action[] actionsEn = new Action[] { new Action("en", "signup"), new Action("en", "dummy"),
+      new Action("en", "download"), new Action("en", "other"), new Action("en", "other 2"),
+      new Action("en", "recommend") };
 
    @Inject
    public StatsService(DB db, WebstatsAggregator stats)
@@ -57,17 +67,35 @@ public class StatsService
       db.dropDatabase();
    }
 
+   // Regex like: db.users.find({"name": /m/})
+   public DBCursor find(String frame, DBObject query)
+   {
+      return db.getCollection(collectionName(frame)).find(query).sort(new BasicDBObject().append("_id.d", 1));
+   }
+
+   public DBCursor find(String frame, String begin, String end) throws ParseException
+   {
+      DBCursor cursor;
+      if (begin != null && end != null) {
+         DateFormat dateFormat = Humanize.dateFormatInstance("dd-MM-yyyy");
+         cursor = getCollection(collectionName(frame), dateFormat.parse(begin), dateFormat.parse(end));
+      } else {
+         cursor = getCollection(collectionName(frame));
+      }
+      return cursor;
+   }
+
    public void generateTraffic(int days, int hits)
    {
       // String[] actions = randomActions();
-      String[] actions = new String[] { "pears", "oranges", "apples", "lemons" };
-      Calendar cal = Calendar.getInstance();
+
+      Calendar cal = Calendar.getInstance(Series.UTC);
       for (int i = 0; i < days; i++) {
          for (int n = 0; n < hits; n++) {
-            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), actions, Arrays.copyOfRange(ua, 0, r.nextInt(ua.length + 1))));
-            cal.set(Calendar.HOUR_OF_DAY, r.nextInt(22) + 1);
+            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), randomArray(actions), randomArray(ua)));
+            cal.set(Calendar.HOUR_OF_DAY, r.nextInt(23));
          }
-         cal.add(Calendar.DAY_OF_MONTH, -1);
+         cal.add(Calendar.DATE, -1);
       }
    }
 
@@ -96,16 +124,9 @@ public class StatsService
 
    }
 
-   public DBCursor openCursor(String frame, String begin, String end) throws ParseException
+   protected String collectionName(String name)
    {
-      DBCursor cursor;
-      if (begin != null && end != null) {
-         DateFormat dateFormat = Humanize.dateFormatInstance("dd-MM-yyyy");
-         cursor = getCollection(frame + "_stats", dateFormat.parse(begin), dateFormat.parse(end));
-      } else {
-         cursor = getCollection(frame + "_stats");
-      }
-      return cursor;
+      return name + "_stats";
    }
 
    protected String[] randomActions()
@@ -116,6 +137,11 @@ public class StatsService
          actions[j] = rs.nextString();
       }
       return actions;
+   }
+
+   private <T> T[] randomArray(T[] ar)
+   {
+      return Arrays.copyOfRange(ar, 0, r.nextInt(ar.length + 1));
    }
 
 }

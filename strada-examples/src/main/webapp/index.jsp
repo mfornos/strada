@@ -58,31 +58,31 @@
     	
         hits = new Highcharts.Chart(${hits});
         loyalty = new Highcharts.Chart(${loyalty});
-        conversion = new Highcharts.Chart(${conversion});
         freq = new Highcharts.Chart(${freq});
         hfreq = new Highcharts.Chart(${hfreq});
         actionsPie = new Highcharts.Chart(${actionsPie});
         loyaltyPie = new Highcharts.Chart(${loyaltyPie});
         osPie = new Highcharts.Chart(${osPie});
         browserPie = new Highcharts.Chart(${browserPie});
-
-          
-          /*
-          
-          requestData();
-          
-          function requestData() {
+        
+        //conversion = new Highcharts.Chart(${conversion});
+        //funnelChart = new Highcharts.Chart(${funnelChart});
+        
+        $('#fs').submit(function() {
+        	  var country = $('#steps-country').val();
+        	 console.log($(this).attr('action')+country+'?steps='+$('#steps').val());
         	  $.ajax({
-        	     url: '/stats/daily/hits.json',
+        	     url: $(this).attr('action')+country+'?steps='+$('#steps').val(),
         	     success: function(json) {
-        	         $.each(json, function(event, value) {
-        	             hits.addSeries(value);
-        	         });
+        	         new Funnel('#levels', json);
         	     },
         	     cache: false
-        	 });
-         };
-         
+             });
+    	     return false;
+        });
+          
+          /*
+                   
          (function poll() {
          setTimeout(function() {
         	 console.log('suscribed');
@@ -106,11 +106,32 @@
     </ul>
 
     <div id="msg"></div>
+    
+    <h2>Funnels</h2>
+    <div class="chart-group">
+    <form method="GET" action="/stats/funnel/daily/" id="fs" name="fs" class="form-inline">
+        <label>Steps</label>
+        <select id="steps-country">
+          <option value="nil" selected="selected">-</option>
+          <option value="es">Spain</option>
+          <option value="en">UK</option>
+        </select>
+        <input type="text" id="steps" value="signup,download,recommend"/> <button class="btn" type="submit">Create</button>
+    </form>
+    <div class="funnels" id="levels">
+      
+    </div>
+    <!--<div id="funnelChart" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>-->
+    </div>
+    
+    <h2>Some charts</h2>
+    
     <div class="chart-group">
     <div class="fluid counters">
         <t:std counter="${uniquesStd}" title="Uniques" />
         <t:std counter="${hitsStd}" title="Hits" />
     </div>
+    
     <div class="chart">
       <div id="hits" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
@@ -122,11 +143,6 @@
     </div>
     <div class="chart">
       <div id="hfreq" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
-    </div>
-    </div>
-    <div class="chart-group">
-    <div class="chart">
-      <div id="conversion" class="chart" style="min-width: 400px; height: 400px; margin: 0 auto"></div>
     </div>
     </div>
     <div class="chart-group">

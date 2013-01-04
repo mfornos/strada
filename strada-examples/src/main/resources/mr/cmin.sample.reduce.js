@@ -15,7 +15,8 @@ function(id, values) {
         first : 0,
         repeat: 0
       },
-      action : {},
+      actions: {},
+      country: {},
       os     : {},
       browser: {},
       version: {},
@@ -34,13 +35,11 @@ function(id, values) {
     };
     
     function contains(a, name){
-  for(var i = 0; i < a.length; i++) {
-      if(a[i] == name){
-        return true;
+      for(var i = 0; i < a.length; i++) {
+        if(a[i] == name) return true;
       }
-    }
-    return false;
-  };
+      return false;
+    };
     
     values.forEach( function(v) {
       result.ts = v.ts;
@@ -50,7 +49,7 @@ function(id, values) {
       if(v.total > 1)  result.repeat += 1;
       if(v.total == 1) result.first  += 1;
       
-      // Frequencies 
+      // Frequencies
       // TODO interpolate in frame dependent template
       
       if(v.daily.freq > 1) result.daily.repeat += 1;
@@ -73,23 +72,29 @@ function(id, values) {
       
       // Conversions
       
-           for (var key in v.action) {
-        var val = v.action[key];
+     for (var key in v.actions) {
+        var val = v.actions[key];
         
-        if(contains(conversions, key)) {
-           if(result.conversion[key] == null) result.conversion[key] = 0;
-           result.conversion[key] += 1;
-        }
+        /*
+		 * if(contains(conversions, key)) { if(result.conversion[key] == null)
+		 * result.conversion[key] = 0; result.conversion[key] += 1; }
+		 */
         
         if(typeof val == "number") {
-          if(result.action[key] == null) result.action[key] = 0;
-          result.action[key] += val;
+          if(result.actions[key] == null) result.actions[key] = 0;
+          result.actions[key] += val;
         }
       }
+      
+      // Actions by country cohort
+     for (var key in v.country) {
+         if(result.country[key] == null) result.country[key] = {};
+         objGroup(v.country[key], result.country[key]);
+     }
         
-        //var rkey = key + "_returning";
-        //if(result.action[rkey] == null) result.action[rkey] = 0;
-        //if(v.action[key] > 1) result.action[rkey] += 1;
+        // var rkey = key + "_returning";
+        // if(result.action[rkey] == null) result.action[rkey] = 0;
+        // if(v.action[key] > 1) result.action[rkey] += 1;
       
     });
         

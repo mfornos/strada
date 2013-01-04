@@ -169,6 +169,11 @@ public class ChartTable
       return stdEnabled;
    }
 
+   public void removeColumn(int columnIndex)
+   {
+      this.columns.remove(columnIndex);
+   }
+
    public int rowsNum()
    {
       return this.rows.size();

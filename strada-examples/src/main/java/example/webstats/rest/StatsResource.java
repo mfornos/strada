@@ -31,12 +31,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
+import com.mongodb.QueryBuilder;
 
 import example.webstats.StatsService;
 import example.webstats.charts.DefaultChartConfig;
+import example.webstats.charts.Funnel;
 import example.webstats.charts.HighchartsConfig;
 import example.webstats.charts.HighchartsConfig.Axis;
 import example.webstats.charts.HighchartsConfig.ChartType;
+import example.webstats.charts.HighchartsConfig.Column;
 import example.webstats.charts.HighchartsConfig.Legend;
 import example.webstats.charts.HighchartsConfig.Title;
 import example.webstats.charts.Series;
@@ -85,32 +89,35 @@ public class StatsResource
    public Response index(@PathParam("frame") String frame, @PathParam("begin") String begin,
          @PathParam("end") String end) throws ServletException, IOException, ParseException
    {
-      DBCursor cursor = stats.openCursor(frame, begin, end);
+      DBCursor cursor = stats.find(frame, begin, end);
 
       if (cursor.count() > 0) {
          request.setAttribute("hasData", true);
 
          ChartTable os = stats.getDynamicData(cursor, "value.os");
          ChartTable browser = stats.getDynamicData(cursor, "value.browser");
-         ChartTable action = stats.getDynamicData(cursor, "value.action");
-         ChartTable conversion = stats.getDynamicData(cursor, "value.conversion");
+         ChartTable action = stats.getDynamicData(cursor, "value.actions");
+         // ChartTable conversion = stats.getDynamicData(cursor,
+         // "value.conversion");
          ChartTable table = stats.getData(cursor);
 
          addChart(frame, table, "hits", "Hit vs Unique", 1, 2);
          addChart(frame, table, "loyalty", "First vs Repeat", 5, 6);
-         addChart(frame, conversion, "conversion", "Conversion", conversion.getColumnIndexes(1));
+         // TODO check no conversions
+         // addChart(frame, conversion, "conversion", "Conversion",
+         // conversion.getColumnIndexes(1));
 
          addFrequencyChart(table, 6, "freq", "Frequency");
-         addHourFrequencyChart(stats.getData(stats.openCursor("hourly", begin, end)), 0, "hfreq", "Hours");
+         addHourFrequencyChart(stats.getData(stats.find("hourly", begin, end)), 0, "hfreq", "Hours");
 
          request.setAttribute("hitsStd", table.getStd(1));
          request.setAttribute("uniquesStd", table.getStd(2));
          request.setAttribute("firstStd", table.getStd(5));
          request.setAttribute("repeatStd", table.getStd(6));
 
-         addPieChart(table, "loyaltyPie", "Loyalty");
-         addPieChart(os, "osPie", "OS");
-         addPieChart(action, "actionsPie", "Actions");
+         addPieChart(table, "loyaltyPie", "Loyalty", 5, 6);
+         addPieChart(os, "osPie", "OS", os.getColumnIndexes(1));
+         addPieChart(action, "actionsPie", "Actions", action.getColumnIndexes(1));
          addPieChart(browser, Series.detailData(cursor, "value.version"), "browserPie", "Browsers");
 
          request.setAttribute("origin", request.getRequestURL());
@@ -118,16 +125,6 @@ public class StatsResource
          request.setAttribute("hasData", false);
       }
       return forward("/index.jsp");
-   }
-
-   @GET
-   @Path("daily/hits.json")
-   @Produces(MediaType.APPLICATION_JSON)
-   public String json() throws ParseException, JsonProcessingException
-   {
-      DBCursor cursor = stats.openCursor("daily", null, null);
-      ChartTable table = stats.getData(cursor);
-      return om.writeValueAsString(Series.timeSeries(table, 1, 2));
    }
 
    @GET
@@ -152,6 +149,38 @@ public class StatsResource
       // System.out.println("sent");
 
       return toHome();
+   }
+
+   // TODO dynamic indexing of properties by queries?
+   // http://docs.mongodb.org/manual/core/indexes/
+   @GET
+   @Path("funnel/{frame}/{country}")
+   @Produces(MediaType.APPLICATION_JSON)
+   public String funnel(@PathParam("frame") String frame, @PathParam("country") String country,
+         @QueryParam("steps") String stepsParam) throws JsonProcessingException
+   {
+
+      // DBCursor cu = stats.find(frame, null);
+      // for(DBObject o : cu) {
+      // System.out.println(o);
+      // }
+      String[] steps = stepsParam.split(",");
+      DBObject query;
+      String base;
+      if ("nil".equalsIgnoreCase(country)) {
+         base = "value.actions";
+         query = QueryBuilder.start(base + "." + steps[0]).greaterThanEquals(0).get();
+      } else {
+         base = "value.country." + country;
+         query = QueryBuilder.start(base + "." + steps[0]).greaterThanEquals(0).get();
+      }
+      DBCursor cursor = stats.find(frame, query);
+      if (cursor.count() > 0) {
+         ChartTable actions = stats.getDynamicData(cursor, base);
+         Funnel funnel = new Funnel(actions, steps);
+         return om.writeValueAsString(funnel);
+      }
+      return "{}";
    }
 
    @GET
@@ -181,6 +210,25 @@ public class StatsResource
       request.setAttribute(id, om.writeValueAsString(freqConfig));
    }
 
+   protected void addFunnel(String frame)
+   {
+      try {
+         DBObject query = QueryBuilder.start("value.actions.signup").greaterThanEquals(0).get();
+         DBCursor applesCursor = stats.find(frame, query);
+         if (applesCursor.count() > 0) {
+            ChartTable actions = stats.getDynamicData(applesCursor, "value.actions");
+
+            Funnel funnel = new Funnel(actions, "signup", "download", "recommend");
+            request.setAttribute("funnel", om.writeValueAsString(funnel));
+            addStackedChart(frame, actions, "funnelChart", "Funnel", funnel.indices);
+         } else {
+            request.setAttribute("funnelChart", "{}");
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
+
    protected void addHourFrequencyChart(ChartTable table, int column, String id, String title) throws ParseException,
          JsonProcessingException
    {
@@ -199,11 +247,22 @@ public class StatsResource
       request.setAttribute(id, om.writeValueAsString(config));
    }
 
-   protected void addPieChart(ChartTable table, String id, String title) throws JsonProcessingException
+   protected void addPieChart(ChartTable table, String id, String title, int... columns) throws JsonProcessingException
    {
       HighchartsConfig config = new DefaultChartConfig(id, title);
       config.chart.type = ChartType.pie;
-      Series.pieSeries(config, table, table.getColumnIndexes(1));
+      Series.pieSeries(config, table, columns);
+      request.setAttribute(id, om.writeValueAsString(config));
+   }
+
+   protected void addStackedChart(String frame, ChartTable table, String id, String title, int... cs)
+         throws JsonProcessingException
+   {
+      HighchartsConfig config = new DefaultChartConfig(id, title);
+      config.chart.type = ChartType.column;
+      config.plotOptions.column = new Column();
+      config.plotOptions.column.stacking = "normal";
+      Series.timeSeries(config, table, cs);
       request.setAttribute(id, om.writeValueAsString(config));
    }
 

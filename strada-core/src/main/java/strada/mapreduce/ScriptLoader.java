@@ -6,9 +6,9 @@ import com.google.common.base.Preconditions;
 
 public class ScriptLoader
 {
-   public static final String FINALIZE_SCRIPT_EXT = ".final";
-   public static final String REDUCE_SCRIPT_EXT = ".reduce";
-   public static final String MAP_SCRIPT_EXT = ".map";
+   public static final String FINALIZE_SCRIPT_EXT = ".final.js";
+   public static final String REDUCE_SCRIPT_EXT = ".reduce.js";
+   public static final String MAP_SCRIPT_EXT = ".map.js";
 
    public static File[] loadScripts(String pathName)
    {

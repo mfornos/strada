@@ -14,7 +14,8 @@ function() {
     var values = {
         ts     : this.ts,
         total  : this.hits,
-        action : this.action,
+        actions: {},
+        country: {},
         os     : this.os,
         browser: this.browser,
         version: this.browser_version,
@@ -30,6 +31,20 @@ function() {
     };
     
     id.oid = id.oid.substring(0, id.oid.indexOf("_"));
+    
+    for (var key in this.actions) {        
+      if(values.actions[key] == null) values.actions[key] = 0;
+      values.actions[key] = 1;
+      
+      var country = this.actions[key].country;
+      
+    	  if(values.country[country] == null) values.country[country] = {};
+    	  var vk = values.country[country];
+    	  // action
+    	  if(vk[key] == null) vk[key] = 0;
+          vk[key] = 1;
+
+    }
     
     emit(id, values);
 };

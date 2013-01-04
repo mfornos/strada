@@ -4,7 +4,25 @@ import java.util.Date;
 
 public class Hit
 {
-   public Hit(int ip, String websiteId, Date ts, String[] actions, String[] ua)
+   public static class Action
+   {
+      public String country;
+      public String name;
+
+      public Action(String country, String name)
+      {
+         this.country = country;
+         this.name = name;
+      }
+   }
+
+   public String websiteId;
+   public Date ts;
+   public int ip;
+   public Action[] actions;
+   public String[] ua;
+
+   public Hit(int ip, String websiteId, Date ts, Action[] actions, String[] ua)
    {
       this.websiteId = websiteId;
       this.ts = ts;
@@ -13,9 +31,8 @@ public class Hit
       this.ua = ua;
    }
 
-   public String websiteId;
-   public Date ts;
-   public int ip;
-   public String[] actions;
-   public String[] ua;
+   public boolean hasActions()
+   {
+      return actions != null && actions.length > 0;
+   }
 }

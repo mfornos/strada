@@ -72,6 +72,7 @@
   <script type="text/javascript" src="/_/js/highcharts.js"></script>
   <script src="/_/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="/_/js/datepicker/js/datepicker.js"></script>  
+  <script type="text/javascript" src="/_/js/funnel.js"></script>
   <script type="text/javascript" src="/_/js/app.js"></script>
   </head>
   <body>

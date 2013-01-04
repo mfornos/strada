@@ -18,7 +18,7 @@ public class TestScriptInterpolator
       String value = "new Date(this._id.d.getFullYear(), this._id.d.getMonth(),this._id.d.getDate(),0, 0, 0, 0)";
       interpol.addVar("date", value);
 
-      String script = Files.toString(new File("src/test/resources/sample.map"), Charset.defaultCharset());
+      String script = Files.toString(new File("src/test/resources/sample.map.js"), Charset.defaultCharset());
       String res = interpol.interpolate(script);
       Assert.assertTrue(res.contains(": " + value));
    }

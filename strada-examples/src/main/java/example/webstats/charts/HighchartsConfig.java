@@ -24,6 +24,11 @@ public class HighchartsConfig
       this.chart = new Chart();
    }
 
+   public static class Column
+   {
+      public String stacking;
+   }
+
    public static class Legend
    {
       public String borderColor;
@@ -68,6 +73,7 @@ public class HighchartsConfig
    public static class PlotOptions
    {
       public Series series;
+      public Column column;
    }
 
    public static class TimeLabelFormats
