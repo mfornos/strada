@@ -28,8 +28,7 @@ import example.webstats.misc.RandomString;
 public class StatsService
 {
    private static String[] ua = new String[] {
-         // "Opera/12.30 (Nintendo Wii; U; ; 2071; Wii Shop Channel/2.0; en)",
-         "Opera/11.0 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)",
+         "Opera/9.0 (Nintendo Wii; U; ; 2071; Wii Shop Channel/1.0; en)",
          "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.2; SV1; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
          "SonyEricssonK550i/R1JD Browser/NetFront/3.3 Profile/MIDP-2.0 Configuration/CLDC-1.1",
          "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_3; en-us; Silk/1.1.0-80) AppleWebKit/533.16 (KHTML, like Gecko) Version/5.0 Safari/533.16 Silk-Accelerated=true" };

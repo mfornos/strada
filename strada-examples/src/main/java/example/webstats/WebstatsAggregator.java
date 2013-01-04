@@ -1,14 +1,13 @@
 package example.webstats;
 
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
+import strada.mapreduce.CommandBuilder;
 import strada.mapreduce.HierarchicalAgg;
 import strada.mapreduce.ScriptInterpolator;
 import strada.services.MapReduceService;
@@ -51,15 +50,12 @@ public class WebstatsAggregator extends HierarchicalAgg
       loadScripts(SAMPLE_MR_PATH);
    }
 
+   // XXX testing
    @Override
-   public List<MapReduceOutput> aggregate()
+   protected void onBuilder(CommandBuilder builder)
    {
-      List<MapReduceOutput> result = super.aggregate();
-      // XXX testing
-      Calendar cal = Calendar.getInstance();
-      cal.add(Calendar.HOUR, -48);
-      lastRun = cal.getTime();
-      return result;
+      // no cutoff
+      builder.query(null);
    }
 
    public void clearFrequencies()

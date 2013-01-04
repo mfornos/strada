@@ -50,6 +50,8 @@
     </jsp:attribute>
     <jsp:body>
     
+    <c:if test="${hasData}">
+    
     <script>
     var hits, loyalty; // globally available
     $(document).ready(function() {
@@ -147,6 +149,12 @@
     </div>
     
     <input type="hidden" id="date-value" value="/" />
+    
+    </c:if>
+    
+    <c:if test="${not hasData}">
+      <h3>No data. Feed me.</h3>
+    </c:if>
     
     </jsp:body>
 </t:layout>

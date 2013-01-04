@@ -30,7 +30,7 @@ public class StradaModule extends AbstractModule
       return uri == null ? new MongoClient() : new MongoClient(uri);
    }
 
-   protected void bindExecutor()
+   protected void bindMapReduceExecutor()
    {
       ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("MapReduce Thread-%s").build();
       bind(ExecutorService.class).annotatedWith(Names.named("MapReduce")).toInstance(Executors.newFixedThreadPool(5, threadFactory));
@@ -40,7 +40,7 @@ public class StradaModule extends AbstractModule
    protected void configure()
    {
       bind(MapReduceService.class).to(DefaultMapReduceService.class);
-      bindExecutor();
+      bindMapReduceExecutor();
    }
 
 }

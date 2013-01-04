@@ -58,5 +58,6 @@ public class DefaultChartConfig extends HighchartsConfig
       yAxis.labels = labels;
       yAxis.title = xAxis.title;
       yAxis.gridLineColor = "#363836";
+      yAxis.min = 0;
    }
 }

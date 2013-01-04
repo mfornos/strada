@@ -36,8 +36,8 @@ public class Series
 
       public Data(Object x, Object y)
       {
-         this.x = x;
-         this.y = y;
+         this.x = x == null ? 0 : x;
+         this.y = y == null ? 0 : y;
       }
    }
 
@@ -154,7 +154,7 @@ public class Series
             int bin = (int) ((i - min) * binSize);
             labels[i] = String.format("%s-%s", bin + min, (int) (bin + min + binSize));
          }
-         
+
       }
 
       serie.data = Ints.concat(first, result, last);

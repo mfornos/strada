@@ -87,30 +87,36 @@ public class StatsResource
    {
       DBCursor cursor = stats.openCursor(frame, begin, end);
 
-      ChartTable os = stats.getDynamicData(cursor, "value.os");
-      ChartTable browser = stats.getDynamicData(cursor, "value.browser");
-      ChartTable action = stats.getDynamicData(cursor, "value.action");
-      ChartTable conversion = stats.getDynamicData(cursor, "value.conversion");
-      ChartTable table = stats.getData(cursor);
+      if (cursor.count() > 0) {
+         request.setAttribute("hasData", true);
 
-      addChart(frame, table, "hits", "Hit vs Unique", 1, 2);
-      addChart(frame, table, "loyalty", "First vs Repeat", 5, 6);
-      addChart(frame, conversion, "conversion", "Conversion", conversion.getColumnIndexes(1));
+         ChartTable os = stats.getDynamicData(cursor, "value.os");
+         ChartTable browser = stats.getDynamicData(cursor, "value.browser");
+         ChartTable action = stats.getDynamicData(cursor, "value.action");
+         ChartTable conversion = stats.getDynamicData(cursor, "value.conversion");
+         ChartTable table = stats.getData(cursor);
 
-      addFrequencyChart(table, 6, "freq", "Frequency");
-      addHourFrequencyChart(stats.getData(stats.openCursor("hourly", begin, end)), 0, "hfreq", "Hours");
+         addChart(frame, table, "hits", "Hit vs Unique", 1, 2);
+         addChart(frame, table, "loyalty", "First vs Repeat", 5, 6);
+         addChart(frame, conversion, "conversion", "Conversion", conversion.getColumnIndexes(1));
 
-      request.setAttribute("hitsStd", table.getStd(1));
-      request.setAttribute("uniquesStd", table.getStd(2));
-      request.setAttribute("firstStd", table.getStd(5));
-      request.setAttribute("repeatStd", table.getStd(6));
+         addFrequencyChart(table, 6, "freq", "Frequency");
+         addHourFrequencyChart(stats.getData(stats.openCursor("hourly", begin, end)), 0, "hfreq", "Hours");
 
-      addPieChart(table, "loyaltyPie", "Loyalty");
-      addPieChart(os, "osPie", "OS");
-      addPieChart(action, "actionsPie", "Actions");
-      addPieChart(browser, Series.detailData(cursor, "value.version"), "browserPie", "Browsers");
+         request.setAttribute("hitsStd", table.getStd(1));
+         request.setAttribute("uniquesStd", table.getStd(2));
+         request.setAttribute("firstStd", table.getStd(5));
+         request.setAttribute("repeatStd", table.getStd(6));
 
-      request.setAttribute("origin", request.getRequestURL());
+         addPieChart(table, "loyaltyPie", "Loyalty");
+         addPieChart(os, "osPie", "OS");
+         addPieChart(action, "actionsPie", "Actions");
+         addPieChart(browser, Series.detailData(cursor, "value.version"), "browserPie", "Browsers");
+
+         request.setAttribute("origin", request.getRequestURL());
+      } else {
+         request.setAttribute("hasData", false);
+      }
       return forward("/index.jsp");
    }
 
