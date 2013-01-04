@@ -74,6 +74,19 @@ public class HighchartsConfig
    {
       public Series series;
       public Column column;
+      public Line line;
+   }
+
+   public static class Line
+   {
+      public Events events;
+      public Boolean showInLegend;
+   }
+
+   public static class Events
+   {
+      @JsonSerialize(using = RawSerializer.class)
+      public String legendItemClick;
    }
 
    public static class TimeLabelFormats

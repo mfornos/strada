@@ -23,6 +23,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 
+import example.webstats.charts.HighchartsConfig.Events;
+import example.webstats.charts.HighchartsConfig.Line;
 import example.webstats.charts.HighchartsConfig.Marker;
 
 public class Series
@@ -364,6 +366,10 @@ public class Series
          series[i].lineWidth = 2;
       }
       conf.series = series;
+      conf.plotOptions.line = new Line();
+      conf.plotOptions.line.showInLegend = true;
+      conf.plotOptions.line.events = new Events();
+      conf.plotOptions.line.events.legendItemClick = "function (e) {var ni = e.target.index+(e.target.chart.series.length/2); var co = e.target.chart.series[ni]; if(co.visible) { co.hide(); } else { co.show(); }}";
    }
 
    private static Serie<Data[]> timeSerie(ChartTable table, int rowIndex, int skipRows, String name)
