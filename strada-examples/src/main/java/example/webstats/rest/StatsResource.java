@@ -54,7 +54,7 @@ public class StatsResource
    private static final BlockingQueue<AsyncResponse> suspended = new ArrayBlockingQueue<AsyncResponse>(5);
 
    @Inject
-   private static StatsService q;
+   private static StatsService stats;
 
    @Inject
    private static ObjectMapper om;
@@ -63,7 +63,7 @@ public class StatsResource
    @Path("drop")
    public Response drop() throws ServletException, IOException, URISyntaxException
    {
-      q.drop();
+      stats.drop();
       return toHome();
    }
 
@@ -85,20 +85,20 @@ public class StatsResource
    public Response index(@PathParam("frame") String frame, @PathParam("begin") String begin,
          @PathParam("end") String end) throws ServletException, IOException, ParseException
    {
-      DBCursor cursor = q.openCursor(frame, begin, end);
+      DBCursor cursor = stats.openCursor(frame, begin, end);
 
-      ChartTable os = q.getDynamicData(cursor, "value.os");
-      ChartTable browser = q.getDynamicData(cursor, "value.browser");
-      ChartTable action = q.getDynamicData(cursor, "value.action");
-      ChartTable conversion = q.getDynamicData(cursor, "value.conversion");
-      ChartTable table = q.getData(cursor);
+      ChartTable os = stats.getDynamicData(cursor, "value.os");
+      ChartTable browser = stats.getDynamicData(cursor, "value.browser");
+      ChartTable action = stats.getDynamicData(cursor, "value.action");
+      ChartTable conversion = stats.getDynamicData(cursor, "value.conversion");
+      ChartTable table = stats.getData(cursor);
 
       addChart(frame, table, "hits", "Hit vs Unique", 1, 2);
       addChart(frame, table, "loyalty", "First vs Repeat", 5, 6);
       addChart(frame, conversion, "conversion", "Conversion", conversion.getColumnIndexes(1));
 
       addFrequencyChart(table, 6, "freq", "Frequency");
-      addHourFrequencyChart(q.getData(q.openCursor("hourly", begin, end)), 0, "hfreq", "Hours");
+      addHourFrequencyChart(stats.getData(stats.openCursor("hourly", begin, end)), 0, "hfreq", "Hours");
 
       request.setAttribute("hitsStd", table.getStd(1));
       request.setAttribute("uniquesStd", table.getStd(2));
@@ -119,8 +119,8 @@ public class StatsResource
    @Produces(MediaType.APPLICATION_JSON)
    public String json() throws ParseException, JsonProcessingException
    {
-      DBCursor cursor = q.openCursor("daily", null, null);
-      ChartTable table = q.getData(cursor);
+      DBCursor cursor = stats.openCursor("daily", null, null);
+      ChartTable table = stats.getData(cursor);
       return om.writeValueAsString(Series.timeSeries(table, 1, 2));
    }
 
@@ -129,8 +129,8 @@ public class StatsResource
    public Response more(@PathParam("days") int days, @PathParam("events") int events) throws URISyntaxException,
          IllegalStateException, JsonProcessingException, ParseException
    {
-      q.generateTraffic(days, events);
-      q.aggregate();
+      stats.generateTraffic(days, events);
+      stats.aggregate();
 
       // try {
       // if (!suspended.isEmpty()) {
