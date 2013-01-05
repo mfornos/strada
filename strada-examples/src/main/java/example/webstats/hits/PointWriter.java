@@ -7,6 +7,7 @@ import nl.bitwalker.useragentutils.Version;
 import strada.data.TimeUnit;
 import strada.features.Feature;
 import strada.features.dimensions.DateTime;
+import strada.features.dimensions.Dimension;
 import strada.features.dimensions.Value;
 import strada.features.metrics.Counter;
 import strada.points.DataPoint;
@@ -64,28 +65,41 @@ public class PointWriter
 
    }
 
+   private void addActions(DataPoint point, Hit hit)
+   {
+      Dimension dimensions = new Dimension("actions");
+
+      for (Action a : hit.actions) {
+         Dimension dim = new Dimension(a.name);
+         dim.add(new Counter("count"));
+         dim.add(new Value("country", a.country));
+         dimensions.add(dim);
+      }
+      point.add(dimensions);
+   }
+
    private void addUA(DataPoint point, Hit hit)
    {
+      Dimension os = new Dimension("os");
+      Dimension browser = new Dimension("browser");
+      Dimension browserVersion = new Dimension("browser_version");
 
-      Counter os = new Counter("os");
-      Counter browser = new Counter("browser");
-      Counter browserVersion = new Counter("browser_version");
       for (String name : hit.ua) {
          UserAgent userAgent = UserAgent.parseUserAgentString(name);
 
          OperatingSystem operatingSystem = userAgent.getOperatingSystem();
          if (operatingSystem != null)
-            os.add(operatingSystem.getName());
+            os.add(new Counter(operatingSystem.getName()));
 
          Browser b = userAgent.getBrowser();
          if (b != null) {
-            browser.add(b.getName());
+            browser.add(new Counter(b.getName()));
 
             Version bv = userAgent.getBrowserVersion();
             if (bv != null) {
-               browserVersion.add(new Counter(b.getName()).add(bv.getVersion().replace('.', '_')));
+               browserVersion.add(new Dimension(b.getName()).add(new Counter(bv.getVersion().replace('.', '_'))));
             } else {
-               browserVersion.add(new Counter(b.getName()).add("unknown"));
+               browserVersion.add(new Dimension(b.getName()).add(new Counter("unknown")));
             }
          }
       }
@@ -106,21 +120,5 @@ public class PointWriter
          traffic.ensureIndex("ts");
       }
       return traffic;
-   }
-
-   private void addActions(DataPoint point, Hit hit)
-   {
-      Counter counters = new Counter("actions");
-      Value dimensions = new Value("actions", null);
-
-      for (Action a : hit.actions) {
-         Counter c = new Counter(a.name);
-         c.add(new Counter("count"));
-         counters.add(c);
-         Value d = new Value(a.name, null);
-         d.add(new Value("country", a.country));
-         dimensions.add(d);
-      }
-      point.add(counters, dimensions);
    }
 }

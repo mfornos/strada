@@ -40,11 +40,11 @@ public class StatsService
    private final Random r = new Random();
    private final RandomString rs = new RandomString(15);
 
-   private static Action[] actions = new Action[] { new Action("es", "signup"), new Action("es", "dummy"),
+   private static Action[] actionsES = new Action[] { new Action("es", "signup"), new Action("es", "dummy"),
          new Action("es", "download"), new Action("es", "other"), new Action("es", "other 2"),
          new Action("es", "recommend") };
    // Test cohort
-   private static Action[] actionsEn = new Action[] { new Action("en", "signup"), new Action("en", "dummy"),
+   private static Action[] actions = new Action[] { new Action("en", "signup"), new Action("en", "dummy"),
       new Action("en", "download"), new Action("en", "other"), new Action("en", "other 2"),
       new Action("en", "recommend") };
 

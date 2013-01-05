@@ -66,15 +66,26 @@ public abstract class BasicFeature implements Feature
    }
 
    @Override
-   public void appendTo(BasicDBObject obj, DataPoint point)
+   public void appendTo(UpdateOp op, BasicDBObject obj, DataPoint point)
    {
       if (isLeaf()) {
-         obj.append(getName(), getValue());
+         if (op.equals(getUpdateOp())) {
+            obj.append(getName(), getValue());
+         }
       } else {
+         if (op.equals(getUpdateOp()) && hasValue()) {
+            obj.append(getName(), getValue());
+         }
          for (Feature dim : children) {
-            dim.appendTo(obj, point);
+            dim.appendTo(op, obj, point);
          }
       }
+   }
+
+   @Override
+   public boolean hasValue()
+   {
+      return getValue() != null;
    }
 
    /**

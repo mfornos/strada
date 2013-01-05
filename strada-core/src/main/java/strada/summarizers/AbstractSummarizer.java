@@ -7,7 +7,6 @@ import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import strada.features.Feature.UpdateOp;
 import strada.features.dimensions.Value;
 import strada.points.DataPoint;
 
@@ -45,9 +44,7 @@ public abstract class AbstractSummarizer<T> implements Summarizer<T>
 
    protected String getMemberId(DataPoint point)
    {
-      // TODO generalize
-      return property == null ? point.getId().toString()
-            : ((Value) point.lookup(UpdateOp.SET, property)).getValue().toString();
+      return property == null ? point.getId().toString() : ((Value) point.lookup(property)).getValue().toString();
    }
 
    protected String formatFileName()

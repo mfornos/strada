@@ -2,9 +2,7 @@ package strada.points;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import strada.data.Query;
@@ -28,7 +26,7 @@ import com.mongodb.WriteResult;
  */
 public class DataPoint
 {
-   private final Map<UpdateOp, Set<Feature>> features;
+   private final Set<Feature> features;
 
    private final Set<Summarizer<?>> summarizers;
 
@@ -53,7 +51,7 @@ public class DataPoint
       this.timestamp = timestamp;
       this.unit = unit;
       this.coll = coll;
-      this.features = new HashMap<UpdateOp, Set<Feature>>();
+      this.features = new HashSet<Feature>();
       this.summarizers = new HashSet<Summarizer<?>>();
    }
 
@@ -121,9 +119,9 @@ public class DataPoint
       return coll;
    }
 
-   public Map<Feature.UpdateOp, Set<Feature>> getFeatures()
+   public Set<Feature> getFeatures()
    {
-      return Collections.unmodifiableMap(features);
+      return Collections.unmodifiableSet(features);
    }
 
    public Object getId()
@@ -148,18 +146,22 @@ public class DataPoint
       return unit;
    }
 
-   public Feature lookup(UpdateOp type, final String name)
+   public Feature lookup(final String name)
    {
-      Set<Feature> feats = features.get(type);
-      if (!(feats == null || feats.isEmpty())) {
-         return Iterables.find(feats, new Predicate<Feature>()
+      return lookup(new Predicate<Feature>()
+      {
+         @Override
+         public boolean apply(Feature f)
          {
-            @Override
-            public boolean apply(Feature f)
-            {
-               return f.getName().equalsIgnoreCase(name);
-            }
-         });
+            return f.getName().equalsIgnoreCase(name);
+         }
+      });
+   }
+
+   public Feature lookup(final Predicate<Feature> predicate)
+   {
+      if (!(features == null || features.isEmpty())) {
+         return Iterables.find(features, predicate);
       }
       return null;
    }
@@ -210,26 +212,19 @@ public class DataPoint
 
    protected void addFeature(Feature feature)
    {
-      Set<Feature> feats = features.get(feature.getUpdateOp());
-      if (feats == null) {
-         feats = new HashSet<Feature>();
-         features.put(feature.getUpdateOp(), feats);
-      }
-      feats.add(feature);
+      features.add(feature);
    }
 
    protected void appendUpsert(BasicDBObject cmd, UpdateOp op)
    {
-      if (features.containsKey(op)) {
-         BasicDBObject obj = forOp(op, new BasicDBObject());
-         cmd.append(op.op(), obj);
-      }
+      BasicDBObject obj = forOp(op, new BasicDBObject());
+      cmd.append(op.op(), obj);
    }
 
    protected BasicDBObject forOp(UpdateOp op, BasicDBObject obj)
    {
-      for (Feature feat : features.get(op)) {
-         feat.appendTo(obj, this);
+      for (Feature feat : features) {
+         feat.appendTo(op, obj, this);
       }
       return obj;
    }

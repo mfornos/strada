@@ -66,11 +66,14 @@ public interface Feature
    /**
     * Appends the feature to the update operation.
     * 
+    * @param op
+    *           The type of the update operation
+    * 
     * @param obj
     *           Update operation holder
     * @param dataPoint
     */
-   void appendTo(BasicDBObject obj, DataPoint dataPoint);
+   void appendTo(UpdateOp op, BasicDBObject obj, DataPoint dataPoint);
 
    /**
     * Answers true if the feature has no children.
@@ -98,6 +101,13 @@ public interface Feature
     * @return this feature instance
     */
    Feature add(Feature child);
+
+   /**
+    * Checks if the feature has any value.
+    * 
+    * @return true if the value is not null
+    */
+   boolean hasValue();
 
    /**
     * Sets the parent feature.
