@@ -1,5 +1,5 @@
 function(id, values) {
-    var conversions = ${conversions};
+    var testValue = ${testValue};
     
     var result = {
       ts     : {},
@@ -9,7 +9,8 @@ function(id, values) {
       first  : 0,
       daily  : {
         first : 0,
-        repeat: 0
+        repeat: 0,
+        freq: 0
       },
       weekly : {
         first : 0,
@@ -35,13 +36,6 @@ function(id, values) {
       }
     };
     
-    function contains(a, name){
-      for(var i = 0; i < a.length; i++) {
-        if(a[i] == name) return true;
-      }
-      return false;
-    };
-    
     values.forEach( function(v) {
       result.ts = v.ts;
       
@@ -53,6 +47,7 @@ function(id, values) {
       // Frequencies
       // TODO interpolate in frame dependent template
       
+      result.daily.freq += v.daily.freq;
       if(v.daily.freq > 1) result.daily.repeat += 1;
       if(v.daily.freq == 1) result.daily.first += 1;
       
@@ -70,16 +65,9 @@ function(id, values) {
       
       // Actions
       // objGroup(v.action, result.action);
-      
-      // Conversions
-      
+            
      for (var key in v.actions) {
         var val = v.actions[key];
-        
-        /*
-		 * if(contains(conversions, key)) { if(result.conversion[key] == null)
-		 * result.conversion[key] = 0; result.conversion[key] += 1; }
-		 */
         
         if(typeof val == "number") {
           if(result.actions[key] == null) result.actions[key] = 0;

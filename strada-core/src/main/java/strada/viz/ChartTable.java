@@ -80,18 +80,34 @@ public class ChartTable
       return getColumnIndexes(0);
    }
 
-   public int[] getColumnIndexes(int index)
+   public int[] getColumnIndexes(int from)
    {
       int[] columns = null;
-      if (columnsNum() > index) {
-         columns = new int[columnsNum() - index];
-         for (int i = index; i < columnsNum(); i++) {
-            columns[i - index] = i;
+      int cnum = columnsNum();
+      if (cnum > from) {
+         columns = new int[cnum - from];
+         for (int i = from; i < cnum; i++) {
+            columns[i - from] = i;
          }
       } else {
          columns = new int[] { 0 };
       }
       return columns;
+   }
+
+   public List<String> getColumnNames()
+   {
+      return getColumnNames(0);
+   }
+
+   public List<String> getColumnNames(int from)
+   {
+      List<String> names = new ArrayList<String>();
+      int cnum = columns.size();
+      for (int i = from; i < cnum; i++) {
+         names.add(columns.get(i).getName());
+      }
+      return names;
    }
 
    public List<ChartColumn> getColumns()

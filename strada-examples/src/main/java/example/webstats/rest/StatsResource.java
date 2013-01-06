@@ -1,9 +1,11 @@
 package example.webstats.rest;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -12,7 +14,9 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -20,8 +24,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 
 import org.glassfish.jersey.server.ManagedAsync;
 
@@ -44,6 +51,8 @@ import example.webstats.charts.HighchartsConfig.Column;
 import example.webstats.charts.HighchartsConfig.Legend;
 import example.webstats.charts.HighchartsConfig.Title;
 import example.webstats.charts.Series;
+import example.webstats.hits.Hit;
+import example.webstats.hits.Hit.Action;
 
 @Path("/")
 public class StatsResource
@@ -89,42 +98,76 @@ public class StatsResource
    public Response index(@PathParam("frame") String frame, @PathParam("begin") String begin,
          @PathParam("end") String end) throws ServletException, IOException, ParseException
    {
-      DBCursor cursor = stats.find(frame, begin, end);
+      try {
+         DBCursor cursor = stats.find(frame, begin, end);
 
-      if (cursor.count() > 0) {
-         request.setAttribute("hasData", true);
+         if (cursor.count() > 0) {
+            request.setAttribute("hasData", true);
 
-         ChartTable os = stats.getDynamicData(cursor, "value.os");
-         ChartTable browser = stats.getDynamicData(cursor, "value.browser");
-         ChartTable action = stats.getDynamicData(cursor, "value.actions");
-         // ChartTable conversion = stats.getDynamicData(cursor,
-         // "value.conversion");
-         ChartTable table = stats.getData(cursor);
+            ChartTable os = stats.getDynamicData(cursor, "value.os");
+            ChartTable browser = stats.getDynamicData(cursor, "value.browser");
+            ChartTable action = stats.getDynamicData(cursor, "value.actions");
+            ChartTable table = stats.getData(cursor);
 
-         addChart(frame, table, "hits", "Hit vs Unique", 1, 2);
-         addChart(frame, table, "loyalty", "First vs Repeat", 5, 6);
-         // TODO check no conversions
-         // addChart(frame, conversion, "conversion", "Conversion",
-         // conversion.getColumnIndexes(1));
+            addChart(frame, table, "hits", "Hit vs Unique", 1, 2);
+            addChart(frame, table, "loyalty", "First vs Repeat", 3, 4);
 
-         addFrequencyChart(table, 6, "freq", "Frequency");
-         addHourFrequencyChart(stats.getData(stats.find("hourly", begin, end)), 0, "hfreq", "Hours");
+            addFrequencyChart(table, 5, "freq", "Frequency");
+            addHourFrequencyChart(stats.getData(stats.find("hourly", begin, end)), 0, "hfreq", "Hours");
 
-         request.setAttribute("hitsStd", table.getStd(1));
-         request.setAttribute("uniquesStd", table.getStd(2));
-         request.setAttribute("firstStd", table.getStd(5));
-         request.setAttribute("repeatStd", table.getStd(6));
+            request.setAttribute("hitsStd", table.getStd(1));
+            request.setAttribute("uniquesStd", table.getStd(2));
+            request.setAttribute("firstStd", table.getStd(3));
+            request.setAttribute("repeatStd", table.getStd(4));
 
-         addPieChart(table, "loyaltyPie", "Loyalty", 5, 6);
-         addPieChart(os, "osPie", "OS", os.getColumnIndexes(1));
-         addPieChart(action, "actionsPie", "Actions", action.getColumnIndexes(1));
-         addPieChart(browser, Series.detailData(cursor, "value.version"), "browserPie", "Browsers");
+            request.setAttribute("actions", action.getColumnNames(1));
 
-         request.setAttribute("origin", request.getRequestURL());
-      } else {
-         request.setAttribute("hasData", false);
+            addPieChart(table, "loyaltyPie", "Loyalty", 3, 4);
+            addPieChart(os, "osPie", "OS", os.getColumnIndexes(1));
+            addPieChart(action, "actionsPie", "Actions", action.getColumnIndexes(1));
+            addPieChart(browser, Series.detailData(cursor, "value.version"), "browserPie", "Browsers");
+
+            request.setAttribute("origin", request.getRequestURL());
+         } else {
+            request.setAttribute("hasData", false);
+         }
+         return forward("/index.jsp");
+      } catch (Exception e) {
+         e.printStackTrace();
+         throw new ServletException(e);
       }
-      return forward("/index.jsp");
+   }
+
+   private static final byte[] TrackingGif = { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61, 0x1, 0x0, 0x1, 0x0, (byte) 0x80,
+         0x0, 0x0, (byte) 0xff, (byte) 0xff, (byte) 0xff, 0x0, 0x0, 0x0, 0x2c, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x1, 0x0,
+         0x0, 0x2, 0x2, 0x44, 0x1, 0x0, 0x3b };
+
+   @GET
+   @Path("agg")
+   public Response aggregate() throws URISyntaxException
+   {
+      stats.aggregate();
+      return toHome();
+   }
+
+   @GET
+   @Path("track")
+   @Produces("image/gif")
+   public StreamingOutput track()
+   {
+      Action action = new Action(request.getHeader(HttpHeaders.ACCEPT_LANGUAGE), request.getParameter("__"));
+      Hit hit = new Hit(request.getRemoteAddr(), "website", new Date(Long.parseLong(request.getParameter("__time"))), action, request.getHeader(HttpHeaders.USER_AGENT));
+
+      stats.onHit(hit);
+
+      return new StreamingOutput()
+      {
+         @Override
+         public void write(OutputStream out) throws IOException
+         {
+            out.write(TrackingGif);
+         }
+      };
    }
 
    @GET
@@ -153,13 +196,17 @@ public class StatsResource
 
    // TODO dynamic indexing of properties by queries?
    // http://docs.mongodb.org/manual/core/indexes/
-   @GET
-   @Path("funnel/{frame}/{country}")
+   @POST
+   @Path("funnel/{frame}")
+   @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
    @Produces(MediaType.APPLICATION_JSON)
-   public String funnel(@PathParam("frame") String frame, @PathParam("country") String country,
-         @QueryParam("steps") String stepsParam) throws JsonProcessingException
+   public String funnel(@PathParam("frame") String frame, MultivaluedMap<String, String> formParams)
+         throws JsonProcessingException
    {
-      String[] steps = stepsParam.split(",");
+      // XXX @FormParam does not work with ajax post...
+      String country = formParams.get("country").get(0);
+      String[] steps = formParams.get("names").toArray(new String[] {});
+      
       DBObject query;
       String base;
       if ("nil".equalsIgnoreCase(country)) {

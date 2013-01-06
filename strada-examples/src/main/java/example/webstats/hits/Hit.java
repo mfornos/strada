@@ -18,21 +18,21 @@ public class Hit
 
    public String websiteId;
    public Date ts;
-   public int ip;
-   public Action[] actions;
-   public String[] ua;
+   public String ip;
+   public Action action;
+   public String ua;
 
-   public Hit(int ip, String websiteId, Date ts, Action[] actions, String[] ua)
+   public Hit(String ip, String websiteId, Date ts, Action action, String ua)
    {
       this.websiteId = websiteId;
       this.ts = ts;
       this.ip = ip;
-      this.actions = actions;
+      this.action = action;
       this.ua = ua;
    }
 
-   public boolean hasActions()
+   public boolean hasAction()
    {
-      return actions != null && actions.length > 0;
+      return action != null;
    }
 }

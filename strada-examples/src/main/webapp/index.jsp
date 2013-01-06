@@ -6,12 +6,25 @@
 
 <t:layout>
     <jsp:attribute name="header">
-      <div class="left">
-        <h1>Strada</h1>
-        <p>Simply analytics</p>
-      </div>
-
-    <div id="date-range">
+    
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Strada</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="#">Home</a></li>
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+            </ul>
+            
+                      <div class="navbar-search pull-right">
+          <div id="date-range">
       <div id="date-range-field">
          <span></span>
          <a href="#">&#9660;</a>
@@ -24,6 +37,18 @@
 	    </div>
       </div>
     </div>
+        </div>
+            
+          </div><!--/.nav-collapse -->
+        </div>
+        
+      </div>
+    </div>
+    
+      <div class="left">
+        <h1>Strada</h1>
+        <p>Simply analytics</p>
+      </div>
 
     
     </jsp:attribute>
@@ -65,21 +90,18 @@
         osPie = new Highcharts.Chart(${osPie});
         browserPie = new Highcharts.Chart(${browserPie});
         
-        //conversion = new Highcharts.Chart(${conversion});
         //funnelChart = new Highcharts.Chart(${funnelChart});
         
-        $('#fs').submit(function() {
-        	  var country = $('#steps-country').val();
-        	 console.log($(this).attr('action')+country+'?steps='+$('#steps').val());
-        	  $.ajax({
-        	     url: $(this).attr('action')+country+'?steps='+$('#steps').val(),
-        	     success: function(json) {
+        $('#fs').submit(function(e) {
+        	  e.preventDefault();
+        	  console.log($(this).serialize());
+        	  console.log($(this).attr('method'));
+        	  $.post($(this).attr('action'), $(this).serialize(), function(json) {
         	         new Funnel('#levels', json);
-        	     },
-        	     cache: false
-             });
-    	     return false;
+        	     });
         });
+        
+        $(".multiselect").multiselect();
           
           /*
                    
@@ -109,14 +131,19 @@
     
     <h2>Funnels</h2>
     <div class="chart-group">
-    <form method="GET" action="/stats/funnel/daily/" id="fs" name="fs" class="form-inline">
+    <form method="POST" action="/stats/funnel/daily" id="fs" name="fs">
         <label>Steps</label>
-        <select id="steps-country">
+        <select name="country">
           <option value="nil" selected="selected">-</option>
           <option value="es">Spain</option>
           <option value="en">UK</option>
         </select>
-        <input type="text" id="steps" value="signup,download,recommend"/> <button class="btn" type="submit">Create</button>
+        <select name="names" multiple="multiple" class="multiselect">
+          <c:forEach items="${actions}" var="action">
+            <option value="${action}">${action}</option>
+          </c:forEach>
+        </select>
+        <button class="btn" type="submit">Create</button>
     </form>
     <div class="funnels" id="levels">
       

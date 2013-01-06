@@ -28,8 +28,8 @@ function() {
         
         // hourly
         unique : 1,
-        repeat : 0,
-        first  : 1,
+        repeat : this.hits > 1? 1 : 0,
+        first  : this.hits == 1? 1 : 0,
         
         // more time frames
         daily  : this.daily,
@@ -41,7 +41,7 @@ function() {
     // prepare actions maps
     for (var key in this.actions) {        
       if(values.actions[key] == null) values.actions[key] = 0;
-      values.actions[key] = 1;
+      values.actions[key] = this.actions[key].count;
       
       // actions by country, nested in action
       var country = this.actions[key].country;

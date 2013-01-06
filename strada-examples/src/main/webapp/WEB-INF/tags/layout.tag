@@ -66,14 +66,23 @@
   <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/base.css" /> 
   <link rel="stylesheet" media="screen" type="text/css" href="/_/js/datepicker/css/clean.css" /> 
   
+  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/jquery/ui/css/smoothness/jquery-ui-1.9.2.custom.min.css" />
+  <link rel="stylesheet" media="screen" type="text/css" href="/_/js/multiselect/css/ui.multiselect.css" />  
+  
   <!-- all our JS is at the bottom of the page, except for Modernizr. -->
   <script src="/_/js/modernizr-1.7.min.js"></script>
   <script src="/_/js/jquery-1.8.3.min.js"></script>
+  <script type="text/javascript" src="/_/js/jquery/ui/js/jquery-ui-1.9.2.custom.min.js"></script>
+  <script type="text/javascript" src="/_/js/multiselect/js/ui.multiselect.js"></script>
   <script type="text/javascript" src="/_/js/highcharts.js"></script>
   <script src="/_/js/bootstrap.min.js"></script>
   <script type="text/javascript" src="/_/js/datepicker/js/datepicker.js"></script>  
   <script type="text/javascript" src="/_/js/funnel.js"></script>
   <script type="text/javascript" src="/_/js/app.js"></script>
+  <script type="text/javascript" src="/_/js/strada.example.js"></script>
+  <script>
+    StatsTracker.post(window.location.pathname, {"one":1,"two":"es"});
+  </script>
   </head>
   <body>
     <header id="pageheader" class="jumbotron">

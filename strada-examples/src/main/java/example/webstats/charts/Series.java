@@ -344,10 +344,12 @@ public class Series
          serie.data = new Data[2];
          serie.showInLegend = false;
          serie.dashStyle = "ShortDash";
+         int rowsNum = table.rowsNum();
          for (int j = 2, n = 0; j > 0; j--) {
-            ChartData row = table.getRow(table.rowsNum() - j);
+            ChartData row = table.getRow(rowsNum - j);
             serie.data[n++] = new Data(zeroTime(row.getDate(0)), row.get(columns[i]));
          }
+
          openSeries[i] = serie;
       }
 
@@ -358,6 +360,11 @@ public class Series
 
    public static void timeSeriesOpenEnd(HighchartsConfig conf, ChartTable table, int... columns)
    {
+      if (table.rowsNum() < 4) {
+         conf.series = timeSeries(table, 0, columns);
+         return;
+      }
+
       Serie<Data[]>[] series = timeSeriesOpenEnd(table, columns);
       int len = columns.length * 2;
       int c = 0;
@@ -374,20 +381,26 @@ public class Series
 
    private static Serie<Data[]> timeSerie(ChartTable table, int rowIndex, int skipRows, String name)
    {
+      int len = table.rowsNum() - skipRows;
       Serie<Data[]> serie = new Serie<Data[]>();
-      serie.data = new Data[table.rowsNum() - skipRows];
-      serie.name = name;
+      if (len > 0) {
+         serie.data = new Data[len];
+         serie.name = name;
 
-      int i = 0;
-      int lastIndex = table.rowsNum() - skipRows;
+         int i = 0;
+         int lastIndex = len;
 
-      for (ChartData row : table.getRows()) {
-         Data data = new Data(zeroTime(row.getDate(0)), row.get(rowIndex));
-         serie.data[i] = data;
-         i++;
-         if (i == lastIndex) {
-            break;
+         for (ChartData row : table.getRows()) {
+            Data data = new Data(zeroTime(row.getDate(0)), row.get(rowIndex));
+            serie.data[i] = data;
+            i++;
+            if (i == lastIndex) {
+               break;
+            }
          }
+      } else {
+         serie.data = new Data[] { new Data(zeroTime(table.getRow(0).getDate(0)), null) };
+         serie.name = name;
       }
 
       return serie;

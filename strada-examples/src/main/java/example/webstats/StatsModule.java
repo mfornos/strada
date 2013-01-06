@@ -25,7 +25,7 @@ public class StatsModule extends AbstractModule
    DB providesDB(@Named("dbName") String dbName, MongoClient client)
    {
       DB db = client.getDB(dbName);
-      // db.dropDatabase();
+      //db.dropDatabase();
       return db;
    }
 

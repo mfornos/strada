@@ -4,7 +4,6 @@ import humanize.Humanize;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
@@ -40,13 +39,11 @@ public class StatsService
    private final Random r = new Random();
    private final RandomString rs = new RandomString(15);
 
-   private static Action[] actionsES = new Action[] { new Action("es", "signup"), new Action("es", "dummy"),
+   private static Action[] actions = new Action[] { new Action("es", "signup"), new Action("es", "dummy"),
          new Action("es", "download"), new Action("es", "other"), new Action("es", "other 2"),
-         new Action("es", "recommend") };
-   // Test cohort
-   private static Action[] actions = new Action[] { new Action("en", "signup"), new Action("en", "dummy"),
-      new Action("en", "download"), new Action("en", "other"), new Action("en", "other 2"),
-      new Action("en", "recommend") };
+         new Action("es", "recommend"), new Action("en", "signup"), new Action("en", "dummy"),
+         new Action("en", "download"), new Action("en", "other"), new Action("en", "other 2"),
+         new Action("en", "recommend") };
 
    @Inject
    public StatsService(DB db, WebstatsAggregator stats)
@@ -92,7 +89,7 @@ public class StatsService
       Calendar cal = Calendar.getInstance(Series.UTC);
       for (int i = 0; i < days; i++) {
          for (int n = 0; n < hits; n++) {
-            stats.onHit(new Hit(n + r.nextInt(100) /* ip + var */, "website", cal.getTime(), randomArray(actions), randomArray(ua)));
+            stats.onHit(new Hit("" + (n + r.nextInt(100)) /* ip + var */, "website", cal.getTime(), randomElement(actions), randomElement(ua)));
             cal.set(Calendar.HOUR_OF_DAY, r.nextInt(23));
          }
          cal.add(Calendar.DATE, -1);
@@ -113,7 +110,7 @@ public class StatsService
    public ChartTable getData(DBCursor cursor)
    {
 
-      return MongoTableBuilder.fromCursor(cursor).columns(ColumnType.DATE, "value.ts").columns("value.total", "value.unique", "value.first", "value.repeat", "value.daily.first", "value.daily.repeat").build();
+      return MongoTableBuilder.fromCursor(cursor).columns(ColumnType.DATE, "value.ts").columns("value.total", "value.unique", "value.first", "value.repeat", "value.daily.freq", "value.daily.first", "value.daily.repeat").build();
 
    }
 
@@ -122,6 +119,11 @@ public class StatsService
 
       return MongoTableBuilder.fromCursor(cursor).columns(ColumnType.DATE, "value.ts").dynamic(selector).build();
 
+   }
+
+   public void onHit(Hit hit)
+   {
+      stats.onHit(hit);
    }
 
    protected String collectionName(String name)
@@ -139,9 +141,9 @@ public class StatsService
       return actions;
    }
 
-   private <T> T[] randomArray(T[] ar)
+   private <T> T randomElement(T[] ar)
    {
-      return Arrays.copyOfRange(ar, 0, r.nextInt(ar.length + 1));
+      return ar[r.nextInt(ar.length)];
    }
 
 }

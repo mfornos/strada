@@ -17,8 +17,6 @@ import com.clearspring.analytics.stream.frequency.CountMinSketch;
 import com.mongodb.DB;
 import com.mongodb.DBCollection;
 
-import example.webstats.hits.Hit.Action;
-
 public class PointWriter
 {
    private final Feature counter = new Counter("hits");
@@ -43,7 +41,7 @@ public class PointWriter
       DataPoint point = new DataPoint(hit.websiteId + "_" + hit.ip);
       point.withTimeUnit(TimeUnit.HOUR).withTimestamp(hit.ts);
       point.withCollection(traffic);
-      if (hit.hasActions()) {
+      if (hit.hasAction()) {
          addActions(point, hit);
       }
       point.add(new DateTime("ts", hit.ts), new Value("ip", hit.ip), counter);
@@ -54,10 +52,12 @@ public class PointWriter
       for (Summarizer<CountMinSketch> s : freqs) {
          point.add(s);
       }
+
       point.summarize();
 
       for (Summarizer<CountMinSketch> s : freqs) {
-         point.add(new Counter(s.getName(), s.getSummarizer().estimateCount(Integer.toString(hit.ip).hashCode())));
+         long estimate = s.getSummarizer().estimateCount(hit.ip.hashCode());
+         point.add(new Value(s.getName(), estimate));
       }
 
       // then 'upsert', thus we would use summarizer results
@@ -68,13 +68,10 @@ public class PointWriter
    private void addActions(DataPoint point, Hit hit)
    {
       Dimension dimensions = new Dimension("actions");
-
-      for (Action a : hit.actions) {
-         Dimension dim = new Dimension(a.name);
-         dim.add(new Counter("count"));
-         dim.add(new Value("country", a.country));
-         dimensions.add(dim);
-      }
+      Dimension dim = new Dimension(hit.action.name);
+      dim.add(new Counter("count"));
+      dim.add(new Value("country", hit.action.country));
+      dimensions.add(dim);
       point.add(dimensions);
    }
 
@@ -84,23 +81,21 @@ public class PointWriter
       Dimension browser = new Dimension("browser");
       Dimension browserVersion = new Dimension("browser_version");
 
-      for (String name : hit.ua) {
-         UserAgent userAgent = UserAgent.parseUserAgentString(name);
+      UserAgent userAgent = UserAgent.parseUserAgentString(hit.ua);
 
-         OperatingSystem operatingSystem = userAgent.getOperatingSystem();
-         if (operatingSystem != null)
-            os.add(new Counter(operatingSystem.getName()));
+      OperatingSystem operatingSystem = userAgent.getOperatingSystem();
+      if (operatingSystem != null)
+         os.add(new Counter(operatingSystem.getName()));
 
-         Browser b = userAgent.getBrowser();
-         if (b != null) {
-            browser.add(new Counter(b.getName()));
+      Browser b = userAgent.getBrowser();
+      if (b != null) {
+         browser.add(new Counter(b.getName()));
 
-            Version bv = userAgent.getBrowserVersion();
-            if (bv != null) {
-               browserVersion.add(new Dimension(b.getName()).add(new Counter(bv.getVersion().replace('.', '_'))));
-            } else {
-               browserVersion.add(new Dimension(b.getName()).add(new Counter("unknown")));
-            }
+         Version bv = userAgent.getBrowserVersion();
+         if (bv != null) {
+            browserVersion.add(new Dimension(b.getName()).add(new Counter(bv.getVersion().replace('.', '_'))));
+         } else {
+            browserVersion.add(new Dimension(b.getName()).add(new Counter("unknown")));
          }
       }
 
