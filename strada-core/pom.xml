@@ -15,7 +15,6 @@
 		<testng.version>6.8</testng.version>
 		<humanize.version>1.0.0</humanize.version>
 		<stream.version>2.2.0</stream.version>
-		<jackson.version>2.1.1</jackson.version>
 		<jcip.version>1.0</jcip.version>
 	</properties>
 	<dependencies>
@@ -39,13 +38,6 @@
 			<artifactId>jcip-annotations</artifactId>
 			<version>${jcip.version}</version>
 		</dependency>
-		<!--
-		<dependency>
-			<groupId>com.fasterxml.jackson.module</groupId>
-			<artifactId>jackson-module-afterburner</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-		-->
 	</dependencies>
 
 </project>

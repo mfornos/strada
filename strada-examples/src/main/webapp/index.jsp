@@ -102,6 +102,15 @@
         });
         
         $(".multiselect").multiselect();
+        
+        $.ajax({
+        	  url : 'http://127.0.0.1:8080/stats/hello/jsonp',
+        	  dataType : 'jsonp',
+        	  data     : {some: "data"},
+        	  success  : function(jsonp) {
+        		  console.log(jsonp);
+        	  }
+        });
           
           /*
                    

@@ -11,7 +11,9 @@ Funnel.prototype = {
 		return $(document.createElement('div')).addClass(css);
 	},
 	show : function(t, id, data) {
-
+		
+		if(data.levels == null) return;
+		
 		var steps = data.levels.length;
 		var container = t.div('fluid counters');
 

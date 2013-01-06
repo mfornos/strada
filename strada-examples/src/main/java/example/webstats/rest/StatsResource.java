@@ -36,6 +36,7 @@ import strada.viz.ChartTable;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.inject.Inject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
@@ -200,13 +201,13 @@ public class StatsResource
    @Path("funnel/{frame}")
    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
    @Produces(MediaType.APPLICATION_JSON)
-   public String funnel(@PathParam("frame") String frame, MultivaluedMap<String, String> formParams)
+   public Funnel funnel(@PathParam("frame") String frame, MultivaluedMap<String, String> formParams)
          throws JsonProcessingException
    {
       // XXX @FormParam does not work with ajax post...
       String country = formParams.get("country").get(0);
       String[] steps = formParams.get("names").toArray(new String[] {});
-      
+
       DBObject query;
       String base;
       if ("nil".equalsIgnoreCase(country)) {
@@ -219,10 +220,28 @@ public class StatsResource
       DBCursor cursor = stats.find(frame, query);
       if (cursor.count() > 0) {
          ChartTable actions = stats.getDynamicData(cursor, base);
-         Funnel funnel = new Funnel(actions, steps);
-         return om.writeValueAsString(funnel);
+         return new Funnel(actions, steps);
       }
-      return "{}";
+
+      return null;
+   }
+
+   @GET
+   @Path("hello/jsonp")
+   @Produces(MediaType.APPLICATION_JSON/* "application/x-javascript" */)
+   public JSONPObject getHello(@QueryParam("callback") String callback)
+   {
+      return new JSONPObject(callback, new Hello("world"));
+   }
+
+   public class Hello
+   {
+      public String message;
+
+      public Hello(String m)
+      {
+         this.message = m;
+      }
    }
 
    @GET
@@ -252,24 +271,25 @@ public class StatsResource
       request.setAttribute(id, om.writeValueAsString(freqConfig));
    }
 
-   private void addFunnel(String frame)
-   {
-      try {
-         DBObject query = QueryBuilder.start("value.actions.signup").greaterThanEquals(0).get();
-         DBCursor applesCursor = stats.find(frame, query);
-         if (applesCursor.count() > 0) {
-            ChartTable actions = stats.getDynamicData(applesCursor, "value.actions");
-
-            Funnel funnel = new Funnel(actions, "signup", "download", "recommend");
-            request.setAttribute("funnel", om.writeValueAsString(funnel));
-            addStackedChart(frame, actions, "funnelChart", "Funnel", funnel.indices);
-         } else {
-            request.setAttribute("funnelChart", "{}");
-         }
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-   }
+   // private void addFunnel(String frame)
+   // {
+   // try {
+   // DBObject query =
+   // QueryBuilder.start("value.actions.signup").greaterThanEquals(0).get();
+   // DBCursor applesCursor = stats.find(frame, query);
+   // if (applesCursor.count() > 0) {
+   // ChartTable actions = stats.getDynamicData(applesCursor, "value.actions");
+   //
+   // Funnel funnel = new Funnel(actions, "signup", "download", "recommend");
+   // request.setAttribute("funnel", om.writeValueAsString(funnel));
+   // addStackedChart(frame, actions, "funnelChart", "Funnel", funnel.indices);
+   // } else {
+   // request.setAttribute("funnelChart", "{}");
+   // }
+   // } catch (Exception e) {
+   // e.printStackTrace();
+   // }
+   // }
 
    protected void addHourFrequencyChart(ChartTable table, int column, String id, String title) throws ParseException,
          JsonProcessingException

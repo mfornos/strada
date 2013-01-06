@@ -21,7 +21,7 @@
 			<artifactId>strada-guice</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-	    <dependency>
+		<dependency>
 			<groupId>com.github.mfornos</groupId>
 			<artifactId>humanize-taglib</artifactId>
 			<version>1.0.0</version>
@@ -49,9 +49,14 @@
 			<version>1.0.0</version>
 			<!--<scope>test</scope> -->
 		</dependency>
-				<dependency>
+		<dependency>
 			<groupId>com.fasterxml.jackson.module</groupId>
 			<artifactId>jackson-module-afterburner</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
 	</dependencies>
@@ -62,7 +67,7 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 				<configuration>
-					<!--<scanIntervalSeconds>5</scanIntervalSeconds>-->
+					<!--<scanIntervalSeconds>5</scanIntervalSeconds> -->
 				</configuration>
 			</plugin>
 		</plugins>
