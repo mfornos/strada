@@ -3,7 +3,11 @@ package strada.util;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 
-public class Walker
+/**
+ * Helper methods for traversing document nodes.
+ * 
+ */
+public final class Walker
 {
 
    public static Object get(BasicDBObject from, String selector)
@@ -31,6 +35,11 @@ public class Walker
          last = (BasicDBObject) last.get(parts[i]);
       }
       return last;
+   }
+
+   private Walker()
+   {
+      //
    }
 
 }

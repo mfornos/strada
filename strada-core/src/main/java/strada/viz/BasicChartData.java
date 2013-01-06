@@ -5,7 +5,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// Non thread safe
+import net.jcip.annotations.NotThreadSafe;
+
+@NotThreadSafe
 public class BasicChartData implements ChartData
 {
 

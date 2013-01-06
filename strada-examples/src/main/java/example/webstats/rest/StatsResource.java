@@ -252,7 +252,7 @@ public class StatsResource
       request.setAttribute(id, om.writeValueAsString(freqConfig));
    }
 
-   protected void addFunnel(String frame)
+   private void addFunnel(String frame)
    {
       try {
          DBObject query = QueryBuilder.start("value.actions.signup").greaterThanEquals(0).get();
